@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct PumpITApp: App {
@@ -13,5 +14,6 @@ struct PumpITApp: App {
         WindowGroup {
             ContentView()
         }
+        .modelContainer(for: PriceLog.self)
     }
 }
