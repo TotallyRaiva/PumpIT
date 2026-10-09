@@ -57,6 +57,11 @@ public struct MapView: View {
             .padding(.horizontal)
             .padding(.top, 8)
         }
+        .sheet(item: $viewModel.selectedStation) { station in
+            StationDetailView(station: station)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+        }
         .task {
             locationManager.requestCurrentLocation()
             let centerCoord = locationManager.currentLocation ?? LocationManager.oettingenFallbackCoordinate
