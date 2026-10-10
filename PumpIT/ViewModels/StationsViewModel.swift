@@ -74,8 +74,55 @@ public final class StationsViewModel {
         isLoading = false
     }
 
+    public var searchQuery: String = ""
+    public var isSearchingCity: Bool = false
+    public var activeLocationName: String = "Current Location"
+
+    public func searchCity(query: String, context: ModelContext) async {
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        isSearchingCity = true
+        errorMessage = nil
+
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = trimmed
+        // Bias search towards Germany
+        request.region = MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 51.1657, longitude: 10.4515),
+            span: MKCoordinateSpan(latitudeDelta: 6.0, longitudeDelta: 6.0)
+        )
+        request.resultTypes = [.address, .pointOfInterest]
+
+        let search = MKLocalSearch(request: request)
+        do {
+            let response = try await search.start()
+            guard let item = response.mapItems.first else {
+                errorMessage = "No matching location found for '\(trimmed)' in Germany."
+                isSearchingCity = false
+                return
+            }
+
+            let coordinate = item.placemark.coordinate
+            self.activeLocationName = item.name ?? item.placemark.locality ?? trimmed
+            self.cameraPosition = .region(
+                MKCoordinateRegion(
+                    center: coordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)
+                )
+            )
+
+            await fetchStations(around: coordinate, context: context)
+        } catch {
+            errorMessage = "Search failed: \(error.localizedDescription)"
+        }
+
+        isSearchingCity = false
+    }
+
     public func centerOnUser() {
         let coord = locationManager.effectiveCoordinate
+        activeLocationName = "My Location"
         cameraPosition = .region(
             MKCoordinateRegion(
                 center: coord,
