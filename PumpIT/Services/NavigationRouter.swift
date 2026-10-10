@@ -38,4 +38,14 @@ public enum NavigationRouter {
             UIApplication.shared.open(webURL)
         }
     }
+
+    /// Convenience overload to navigate to a GasStation with Google Maps
+    public static func openGoogleMaps(station: GasStation) {
+        openGoogleMaps(latitude: station.lat, longitude: station.lng)
+    }
+
+    /// Convenience overload to navigate to a GasStation with Waze
+    public static func openWaze(station: GasStation) {
+        openWaze(latitude: station.lat, longitude: station.lng)
+    }
 }
