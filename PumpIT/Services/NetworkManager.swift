@@ -128,6 +128,57 @@ public final class NetworkManager: Sendable {
             print("Failed to save SwiftData price logs: \(error.localizedDescription)")
         }
     }
+
+    /// Asynchronously saves fetched prices into SwiftData in the background using ModelContainer.
+    public func savePriceLogsInBackground(for stations: [GasStation], container: ModelContainer) async {
+        let backgroundContext = ModelContext(container)
+        let now = Date()
+        let fifteenMinutesAgo = now.addingTimeInterval(-15 * 60)
+
+        for station in stations where station.isOpen {
+            let priceTuples: [(FuelType, Double?)] = [
+                (.e5, station.priceE5),
+                (.e10, station.priceE10),
+                (.diesel, station.priceDiesel)
+            ]
+
+            for (fuelType, price) in priceTuples {
+                guard let price = price, price > 0 else { continue }
+
+                let fuelTypeRaw = fuelType.rawValue
+                let stationID = station.id
+                var descriptor = FetchDescriptor<PriceLog>(
+                    predicate: #Predicate { log in
+                        log.stationID == stationID &&
+                        log.fuelType == fuelTypeRaw &&
+                        log.timestamp >= fifteenMinutesAgo
+                    },
+                    sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+                )
+                descriptor.fetchLimit = 1
+
+                if let recentLogs = try? backgroundContext.fetch(descriptor),
+                   let latest = recentLogs.first,
+                   abs(latest.price - price) < 0.001 {
+                    continue
+                }
+
+                let newLog = PriceLog(
+                    stationID: station.id,
+                    price: price,
+                    timestamp: now,
+                    fuelType: fuelType.rawValue
+                )
+                backgroundContext.insert(newLog)
+            }
+        }
+
+        do {
+            try backgroundContext.save()
+        } catch {
+            print("Background price caching error: \(error.localizedDescription)")
+        }
+    }
 }
 
 // MARK: - Tankerkönig Response Model
