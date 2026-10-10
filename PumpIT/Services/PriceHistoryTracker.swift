@@ -92,4 +92,58 @@ public enum PriceHistoryTracker {
 
         return (try? modelContext.fetch(descriptor)) ?? []
     }
+
+    /// Analyzes 24-hour price trends and provides actionable fueling recommendations.
+    @MainActor
+    public static func analyzeTrend(
+        station: GasStation,
+        fuelType: FuelType,
+        in modelContext: ModelContext
+    ) -> PriceTrendAnalysis {
+        let lowest = lowestPriceInLast24Hours(stationID: station.id, fuelType: fuelType, in: modelContext)
+
+        let currentPrice: Double?
+        switch fuelType {
+        case .e5: currentPrice = station.priceE5
+        case .e10: currentPrice = station.priceE10
+        case .diesel: currentPrice = station.priceDiesel
+        }
+
+        let priceDiff: Double?
+        let isLow: Bool
+        if let current = currentPrice, let lowest = lowest {
+            let diff = current - lowest.price
+            priceDiff = diff
+            isLow = diff <= 0.001
+        } else {
+            priceDiff = nil
+            isLow = false
+        }
+
+        let hour = Calendar.current.component(.hour, from: Date())
+        let tip: String
+        if hour >= 18 && hour <= 22 {
+            tip = "Prime fueling window active! Evening prices in Germany are historically at their lowest."
+        } else if hour >= 6 && hour <= 9 {
+            tip = "Morning price surge: German stations peak during morning commute. Waiting until evening can save 8-12 ct/L."
+        } else {
+            tip = "Prices fluctuate throughout the day. In Germany, fuel tends to steadily drop toward 8:00 PM."
+        }
+
+        return PriceTrendAnalysis(
+            lowestRecord: lowest,
+            currentPrice: currentPrice,
+            priceDifference: priceDiff,
+            isAt24hLow: isLow,
+            recommendation: tip
+        )
+    }
+}
+
+public struct PriceTrendAnalysis: Sendable {
+    public let lowestRecord: LowestPriceRecord?
+    public let currentPrice: Double?
+    public let priceDifference: Double?
+    public let isAt24hLow: Bool
+    public let recommendation: String
 }

@@ -121,22 +121,14 @@ public struct StationDetailView: View {
             }
             .pickerStyle(.segmented)
 
-            let lowestRecord = PriceHistoryTracker.lowestPriceInLast24Hours(
-                stationID: station.id,
+            let analysis = PriceHistoryTracker.analyzeTrend(
+                station: station,
                 fuelType: selectedTrendFuel,
                 in: modelContext
             )
 
-            let currentPrice: Double? = {
-                switch selectedTrendFuel {
-                case .e5: return station.priceE5
-                case .e10: return station.priceE10
-                case .diesel: return station.priceDiesel
-                }
-            }()
-
             VStack(alignment: .leading, spacing: 10) {
-                if let record = lowestRecord {
+                if let record = analysis.lowestRecord {
                     HStack(alignment: .center) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("24h Lowest Price")
@@ -161,24 +153,21 @@ public struct StationDetailView: View {
 
                     Divider()
 
-                    if let current = currentPrice, current > 0 {
-                        let diff = current - record.price
-                        if diff <= 0.001 {
-                            HStack(spacing: 6) {
-                                Image(systemName: "checkmark.seal.fill")
-                                    .foregroundStyle(.green)
-                                Text("Optimal: Currently fueling at the 24h lowest price!")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(.green)
-                            }
-                        } else {
-                            HStack(spacing: 6) {
-                                Image(systemName: "arrow.up.circle.fill")
-                                    .foregroundStyle(.orange)
-                                Text(String(format: "Currently +%.3f € above 24h low", diff))
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(.orange)
-                            }
+                    if analysis.isAt24hLow {
+                        HStack(spacing: 6) {
+                            Image(systemName: "checkmark.seal.fill")
+                                .foregroundStyle(.green)
+                            Text("Optimal: Currently fueling at the 24h lowest price!")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.green)
+                        }
+                    } else if let diff = analysis.priceDifference {
+                        HStack(spacing: 6) {
+                            Image(systemName: "arrow.up.circle.fill")
+                                .foregroundStyle(.orange)
+                            Text(String(format: "Currently +%.3f € above 24h low", diff))
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.orange)
                         }
                     }
                 } else {
@@ -191,11 +180,12 @@ public struct StationDetailView: View {
                     }
                 }
 
-                HStack(spacing: 6) {
+                HStack(alignment: .top, spacing: 6) {
                     Image(systemName: "lightbulb.fill")
                         .font(.caption2)
                         .foregroundStyle(.yellow)
-                    Text("Pro Tip: In Germany, fuel prices are typically lowest between 6:00 PM and 10:00 PM.")
+                        .padding(.top, 2)
+                    Text(analysis.recommendation)
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
