@@ -19,14 +19,14 @@ public struct LowestPriceRecord: Sendable {
         let formatter = DateFormatter()
         formatter.dateStyle = .none
         formatter.timeStyle = .short
-        formatter.locale = Locale(identifier: "de_DE")
+        formatter.locale = Locale(identifier: "en_US")
         return formatter.string(from: timestamp)
     }
 
     public var formattedDateTime: String {
         let formatter = DateFormatter()
-        formatter.dateFormat = "E, HH:mm 'Uhr'"
-        formatter.locale = Locale(identifier: "de_DE")
+        formatter.dateFormat = "E, h:mm a"
+        formatter.locale = Locale(identifier: "en_US")
         return formatter.string(from: timestamp)
     }
 }

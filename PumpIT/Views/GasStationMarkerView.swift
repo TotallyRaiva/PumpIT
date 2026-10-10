@@ -19,7 +19,7 @@ public struct GasStationMarkerView: View {
         }
 
         guard station.isOpen else {
-            return "Geschlossen"
+            return "Closed"
         }
 
         guard let price = price, price > 0 else {

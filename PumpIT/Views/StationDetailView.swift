@@ -35,7 +35,7 @@ public struct StationDetailView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Tankstelle")
+            .navigationTitle("Gas Station")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -74,7 +74,7 @@ public struct StationDetailView: View {
                 Spacer()
 
                 // Status Badge
-                Text(station.isOpen ? "Geöffnet" : "Geschlossen")
+                Text(station.isOpen ? "Open" : "Closed")
                     .font(.caption.weight(.semibold))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
@@ -84,7 +84,7 @@ public struct StationDetailView: View {
             }
 
             if let dist = station.dist {
-                Label(String(format: "%.1f km entfernt", dist), systemImage: "location")
+                Label(String(format: "%.1f km away", dist), systemImage: "location")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -97,7 +97,7 @@ public struct StationDetailView: View {
     // MARK: - Prices Section
     private var pricesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Aktuelle Kraftstoffpreise")
+            Text("Current Fuel Prices")
                 .font(.headline)
 
             HStack(spacing: 12) {
@@ -111,10 +111,10 @@ public struct StationDetailView: View {
     // MARK: - Best Time to Fuel (24h Trend) Section
     private var bestTimeToFuelSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Beste Tankzeit & 24h Trend", systemImage: "clock.badge.checkmark")
+            Label("Best Time & 24h Trend", systemImage: "clock.badge.checkmark")
                 .font(.headline)
 
-            Picker("Kraftstoff", selection: $selectedTrendFuel) {
+            Picker("Fuel Type", selection: $selectedTrendFuel) {
                 ForEach(FuelType.allCases) { fuel in
                     Text(fuel.shortName).tag(fuel)
                 }
@@ -139,7 +139,7 @@ public struct StationDetailView: View {
                 if let record = lowestRecord {
                     HStack(alignment: .center) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("24h Tiefstpreis")
+                            Text("24h Lowest Price")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             Text(record.formattedPrice)
@@ -150,7 +150,7 @@ public struct StationDetailView: View {
                         Spacer()
 
                         VStack(alignment: .trailing, spacing: 2) {
-                            Text("Gemessen um")
+                            Text("Recorded at")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             Text(record.formattedTime)
@@ -167,7 +167,7 @@ public struct StationDetailView: View {
                             HStack(spacing: 6) {
                                 Image(systemName: "checkmark.seal.fill")
                                     .foregroundStyle(.green)
-                                Text("Optimal: Aktuell zum 24h-Tiefstpreis tanken!")
+                                Text("Optimal: Currently fueling at the 24h lowest price!")
                                     .font(.caption.weight(.semibold))
                                     .foregroundStyle(.green)
                             }
@@ -175,7 +175,7 @@ public struct StationDetailView: View {
                             HStack(spacing: 6) {
                                 Image(systemName: "arrow.up.circle.fill")
                                     .foregroundStyle(.orange)
-                                Text(String(format: "Aktuell +%.3f € über dem 24h-Tiefststand", diff))
+                                Text(String(format: "Currently +%.3f € above 24h low", diff))
                                     .font(.caption.weight(.semibold))
                                     .foregroundStyle(.orange)
                             }
@@ -185,7 +185,7 @@ public struct StationDetailView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "info.circle")
                             .foregroundStyle(.blue)
-                        Text("Preishistorie wird bei jedem Aktualisieren aufgebaut.")
+                        Text("Price history builds automatically as you browse.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -195,7 +195,7 @@ public struct StationDetailView: View {
                     Image(systemName: "lightbulb.fill")
                         .font(.caption2)
                         .foregroundStyle(.yellow)
-                    Text("Tipp: In Deutschland sinken die Preise meist zwischen 18:00 und 22:00 Uhr.")
+                    Text("Pro Tip: In Germany, fuel prices are typically lowest between 6:00 PM and 10:00 PM.")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
@@ -211,7 +211,7 @@ public struct StationDetailView: View {
     // MARK: - Routing Section
     private var routingSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Navigation starten")
+            Text("Start Navigation")
                 .font(.headline)
 
             VStack(spacing: 10) {
@@ -222,7 +222,7 @@ public struct StationDetailView: View {
                     HStack {
                         Image(systemName: "apple.logo")
                             .font(.headline)
-                        Text("In Apple Maps öffnen")
+                        Text("Open in Apple Maps")
                             .font(.subheadline.weight(.semibold))
                         Spacer()
                         Image(systemName: "arrow.up.right")
@@ -245,7 +245,7 @@ public struct StationDetailView: View {
                     HStack {
                         Image(systemName: "map.fill")
                             .font(.headline)
-                        Text("In Google Maps öffnen")
+                        Text("Open in Google Maps")
                             .font(.subheadline.weight(.semibold))
                         Spacer()
                         Image(systemName: "arrow.up.right")
@@ -268,7 +268,7 @@ public struct StationDetailView: View {
                     HStack {
                         Image(systemName: "car.fill")
                             .font(.headline)
-                        Text("In Waze öffnen")
+                        Text("Open in Waze")
                             .font(.subheadline.weight(.semibold))
                         Spacer()
                         Image(systemName: "arrow.up.right")
@@ -310,7 +310,7 @@ private struct PriceCardView: View {
                     .font(.title3.weight(.bold))
                     .foregroundStyle(.secondary)
 
-                Text("Kein Preis")
+                Text("No Price")
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
             }

@@ -45,7 +45,7 @@ public struct MapView: View {
             VStack(spacing: 8) {
                 topControlsHeader
                 if viewModel.isLoading {
-                    ProgressView("Preise werden geladen...")
+                    ProgressView("Loading fuel prices...")
                         .font(.caption)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 8)
@@ -73,7 +73,7 @@ public struct MapView: View {
     private var topControlsHeader: some View {
         HStack(spacing: 10) {
             // Fuel Type Picker
-            Picker("Kraftstoff", selection: $viewModel.selectedFuelType) {
+            Picker("Fuel Type", selection: $viewModel.selectedFuelType) {
                 ForEach(FuelType.allCases) { fuel in
                     Text(fuel.shortName).tag(fuel)
                 }
