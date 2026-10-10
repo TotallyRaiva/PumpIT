@@ -8,7 +8,10 @@ import SwiftData
 
 public struct StationDetailView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+
     public let station: GasStation
+    @State private var selectedTrendFuel: FuelType = .e5
 
     public init(station: GasStation) {
         self.station = station
@@ -23,6 +26,9 @@ public struct StationDetailView: View {
 
                     // Live Prices Section
                     pricesSection
+
+                    // Best Time to Fuel (24h Trend) Section
+                    bestTimeToFuelSection
 
                     // Navigation Routing Section
                     routingSection
@@ -99,6 +105,106 @@ public struct StationDetailView: View {
                 PriceCardView(title: "Super E10", price: station.priceE10, color: .teal)
                 PriceCardView(title: "Diesel", price: station.priceDiesel, color: .orange)
             }
+        }
+    }
+
+    // MARK: - Best Time to Fuel (24h Trend) Section
+    private var bestTimeToFuelSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Beste Tankzeit & 24h Trend", systemImage: "clock.badge.checkmark")
+                .font(.headline)
+
+            Picker("Kraftstoff", selection: $selectedTrendFuel) {
+                ForEach(FuelType.allCases) { fuel in
+                    Text(fuel.shortName).tag(fuel)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            let lowestRecord = PriceHistoryTracker.lowestPriceInLast24Hours(
+                stationID: station.id,
+                fuelType: selectedTrendFuel,
+                in: modelContext
+            )
+
+            let currentPrice: Double? = {
+                switch selectedTrendFuel {
+                case .e5: return station.priceE5
+                case .e10: return station.priceE10
+                case .diesel: return station.priceDiesel
+                }
+            }()
+
+            VStack(alignment: .leading, spacing: 10) {
+                if let record = lowestRecord {
+                    HStack(alignment: .center) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("24h Tiefstpreis")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text(record.formattedPrice)
+                                .font(.system(.title2, design: .rounded).weight(.bold))
+                                .foregroundStyle(.green)
+                        }
+
+                        Spacer()
+
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("Gemessen um")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text(record.formattedTime)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.primary)
+                        }
+                    }
+
+                    Divider()
+
+                    if let current = currentPrice, current > 0 {
+                        let diff = current - record.price
+                        if diff <= 0.001 {
+                            HStack(spacing: 6) {
+                                Image(systemName: "checkmark.seal.fill")
+                                    .foregroundStyle(.green)
+                                Text("Optimal: Aktuell zum 24h-Tiefstpreis tanken!")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.green)
+                            }
+                        } else {
+                            HStack(spacing: 6) {
+                                Image(systemName: "arrow.up.circle.fill")
+                                    .foregroundStyle(.orange)
+                                Text(String(format: "Aktuell +%.3f € über dem 24h-Tiefststand", diff))
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.orange)
+                            }
+                        }
+                    }
+                } else {
+                    HStack(spacing: 8) {
+                        Image(systemName: "info.circle")
+                            .foregroundStyle(.blue)
+                        Text("Preishistorie wird bei jedem Aktualisieren aufgebaut.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                HStack(spacing: 6) {
+                    Image(systemName: "lightbulb.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.yellow)
+                    Text("Tipp: In Deutschland sinken die Preise meist zwischen 18:00 und 22:00 Uhr.")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.top, 2)
+            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
         }
     }
 

@@ -7,14 +7,14 @@ import Foundation
 import SwiftData
 
 @Model
-final class PriceLog {
-    var id: UUID
-    var stationID: String
-    var price: Double
-    var timestamp: Date
-    var fuelType: String
+public final class PriceLog {
+    public var id: UUID
+    public var stationID: String
+    public var price: Double
+    public var timestamp: Date
+    public var fuelType: String
 
-    init(
+    public init(
         id: UUID = UUID(),
         stationID: String,
         price: Double,

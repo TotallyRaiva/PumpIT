@@ -10,7 +10,7 @@ public final class NetworkManager: Sendable {
     public static let shared = NetworkManager()
 
     /// Tankerkönig official public test key (works for Oettingen/demo coordinates: 48.9534, 10.6054)
-    public static let defaultAPIKey = "00000000-0000-0000-0000-000000000002"
+    public nonisolated static let defaultAPIKey = "00000000-0000-0000-0000-000000000002"
     private static let baseURLString = "https://creativecommons.tankerkoenig.de/json/list.php"
 
     private let session: URLSession
