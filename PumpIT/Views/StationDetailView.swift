@@ -207,6 +207,7 @@ public struct StationDetailView: View {
             VStack(spacing: 10) {
                 // Apple Maps Button
                 Button {
+                    HapticFeedback.impact(style: .medium)
                     NavigationRouter.openAppleMaps(station: station)
                 } label: {
                     HStack {
@@ -227,10 +228,8 @@ public struct StationDetailView: View {
 
                 // Google Maps Button
                 Button {
-                    NavigationRouter.openGoogleMaps(
-                        latitude: station.lat,
-                        longitude: station.lng
-                    )
+                    HapticFeedback.impact(style: .medium)
+                    NavigationRouter.openGoogleMaps(station: station)
                 } label: {
                     HStack {
                         Image(systemName: "map.fill")
@@ -250,10 +249,8 @@ public struct StationDetailView: View {
 
                 // Waze Button
                 Button {
-                    NavigationRouter.openWaze(
-                        latitude: station.lat,
-                        longitude: station.lng
-                    )
+                    HapticFeedback.impact(style: .medium)
+                    NavigationRouter.openWaze(station: station)
                 } label: {
                     HStack {
                         Image(systemName: "car.fill")
