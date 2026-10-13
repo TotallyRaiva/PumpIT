@@ -32,3 +32,9 @@ xcuserdata/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Secrets & Local Configuration
+Secrets.plist
+*Secrets.plist
+Config.xcconfig
+*.local.plist

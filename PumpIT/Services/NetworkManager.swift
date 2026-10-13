@@ -8,9 +8,6 @@ import SwiftData
 
 public final class NetworkManager: Sendable {
     public static let shared = NetworkManager()
-
-    /// Tankerkönig official public test key (works for Oettingen/demo coordinates: 48.9534, 10.6054)
-    public nonisolated static let defaultAPIKey = "00000000-0000-0000-0000-000000000002"
     private static let baseURLString = "https://creativecommons.tankerkoenig.de/json/list.php"
 
     private let session: URLSession
@@ -24,14 +21,15 @@ public final class NetworkManager: Sendable {
     ///   - latitude: Center latitude
     ///   - longitude: Center longitude
     ///   - radius: Radius in kilometers (1.0 to 25.0)
-    ///   - apiKey: Tankerkönig API key (falls back to default demo key or saved key)
+    ///   - apiKey: Tankerkönig API key (defaults to AppConfiguration.tankerkoenigAPIKey)
     /// - Returns: List of decoded `GasStation` objects
     public func fetchStations(
         latitude: Double,
         longitude: Double,
         radius: Double = 5.0,
-        apiKey: String = NetworkManager.defaultAPIKey
+        apiKey: String? = nil
     ) async throws -> [GasStation] {
+        let activeKey = apiKey ?? AppConfiguration.tankerkoenigAPIKey
         let clampedRadius = min(max(radius, 1.0), 25.0)
 
         var components = URLComponents(string: Self.baseURLString)
@@ -41,7 +39,7 @@ public final class NetworkManager: Sendable {
             URLQueryItem(name: "rad", value: String(format: "%.1f", clampedRadius)),
             URLQueryItem(name: "sort", value: "dist"),
             URLQueryItem(name: "type", value: "all"),
-            URLQueryItem(name: "apikey", value: apiKey)
+            URLQueryItem(name: "apikey", value: activeKey)
         ]
 
         guard let url = components?.url else {
