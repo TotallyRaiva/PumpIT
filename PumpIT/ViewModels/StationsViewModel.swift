@@ -20,9 +20,12 @@ public final class StationsViewModel {
     public var searchRadius: Double = 5.0
 
     public var cameraPosition: MapCameraPosition
+    public private(set) var activeSearchCoordinate: CLLocationCoordinate2D
 
     private let networkManager: NetworkManager
     private let locationManager: LocationManager
+    private var hasCenteredOnInitialUserLocation: Bool = false
+    private var isUsingCustomCitySearch: Bool = false
 
     public init(
         networkManager: NetworkManager? = nil,
@@ -33,6 +36,8 @@ public final class StationsViewModel {
         self.networkManager = networkManager ?? .shared
 
         let initialCoord = locManager.effectiveCoordinate
+        self.activeSearchCoordinate = initialCoord
+        self.hasCenteredOnInitialUserLocation = (locManager.currentLocation != nil)
         self.cameraPosition = .region(
             MKCoordinateRegion(
                 center: initialCoord,
@@ -42,13 +47,32 @@ public final class StationsViewModel {
     }
 
     public func refreshStations(context: ModelContext) async {
-        let targetCoord = locationManager.currentLocation ?? LocationManager.oettingenFallbackCoordinate
-        await fetchStations(around: targetCoord, context: context)
+        if !isUsingCustomCitySearch, let userCoord = locationManager.currentLocation {
+            activeSearchCoordinate = userCoord
+        }
+        await fetchStations(around: activeSearchCoordinate, context: context)
+    }
+
+    public func handleLocationUpdate(context: ModelContext) async {
+        guard let userCoord = locationManager.currentLocation else { return }
+        guard !hasCenteredOnInitialUserLocation && !isUsingCustomCitySearch else { return }
+
+        hasCenteredOnInitialUserLocation = true
+        activeSearchCoordinate = userCoord
+        activeLocationName = "Current Location"
+        cameraPosition = .region(
+            MKCoordinateRegion(
+                center: userCoord,
+                span: MKCoordinateSpan(latitudeDelta: 0.08, longitudeDelta: 0.08)
+            )
+        )
+        await fetchStations(around: userCoord, context: context)
     }
 
     public func fetchStations(around coordinate: CLLocationCoordinate2D, context: ModelContext) async {
         isLoading = true
         errorMessage = nil
+        activeSearchCoordinate = coordinate
 
         do {
             let fetched = try await networkManager.fetchStations(
@@ -61,12 +85,14 @@ public final class StationsViewModel {
             // Save fetched price records into SwiftData history
             networkManager.savePriceLogs(for: fetched, in: context)
         } catch {
+            if error is CancellationError {
+                isLoading = false
+                return
+            }
             print("Network fetch failed: \(error.localizedDescription). Using sample data if empty.")
             if stations.isEmpty {
-                // Populate sample stations near coordinate for testing/demo
-                let fallbackStations = Self.sampleStations(near: coordinate)
-                self.stations = fallbackStations
-                networkManager.savePriceLogs(for: fallbackStations, in: context)
+                // Populate sample stations near coordinate for testing/demo without polluting SwiftData
+                self.stations = Self.sampleStations(near: coordinate)
             }
             self.errorMessage = error.localizedDescription
         }
@@ -104,6 +130,8 @@ public final class StationsViewModel {
             }
 
             let coordinate = item.placemark.coordinate
+            self.isUsingCustomCitySearch = true
+            self.activeSearchCoordinate = coordinate
             self.activeLocationName = item.name ?? item.placemark.locality ?? trimmed
             self.cameraPosition = .region(
                 MKCoordinateRegion(
@@ -120,8 +148,11 @@ public final class StationsViewModel {
         isSearchingCity = false
     }
 
-    public func centerOnUser() {
+    public func centerOnUser(context: ModelContext? = nil) async {
+        isUsingCustomCitySearch = false
+        locationManager.requestCurrentLocation()
         let coord = locationManager.effectiveCoordinate
+        activeSearchCoordinate = coord
         activeLocationName = "My Location"
         cameraPosition = .region(
             MKCoordinateRegion(
@@ -129,6 +160,9 @@ public final class StationsViewModel {
                 span: MKCoordinateSpan(latitudeDelta: 0.06, longitudeDelta: 0.06)
             )
         )
+        if let context {
+            await fetchStations(around: coord, context: context)
+        }
     }
 
     // MARK: - Sample Demo Data

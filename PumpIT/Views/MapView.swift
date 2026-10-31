@@ -10,30 +10,27 @@ import SwiftData
 public struct MapView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var viewModel = StationsViewModel()
-    @State private var locationManager = LocationManager.shared
+    private let locationManager = LocationManager.shared
 
     @AppStorage("default_fuel_type") private var defaultFuelType: String = FuelType.e5.rawValue
     @AppStorage("search_radius") private var savedRadius: Double = 5.0
 
     @State private var isShowingListView: Bool = false
     @State private var isShowingSettings: Bool = false
+    @State private var refreshTask: Task<Void, Never>?
 
     public init() {}
 
     public var body: some View {
-        ZStack(alignment: .top) {
+        Group {
             // Main Content: Map or List
             if isShowingListView {
-                VStack(spacing: 0) {
-                    Color.clear.frame(height: 145) // Spacing for top floating search and controls
-                    StationsListView(
-                        stations: viewModel.stations,
-                        fuelType: viewModel.selectedFuelType
-                    ) { station in
-                        viewModel.selectedStation = station
-                    }
+                StationsListView(
+                    stations: viewModel.stations,
+                    fuelType: viewModel.selectedFuelType
+                ) { station in
+                    viewModel.selectedStation = station
                 }
-                .ignoresSafeArea(edges: .bottom)
             } else {
                 Map(position: $viewModel.cameraPosition) {
                     UserAnnotation()
@@ -61,7 +58,8 @@ public struct MapView: View {
                 }
                 .ignoresSafeArea(edges: .bottom)
             }
-
+        }
+        .safeAreaInset(edge: .top, spacing: 8) {
             // Top Control Overlay with Search Bar & Quick Chips
             VStack(spacing: 8) {
                 searchBarSection
@@ -89,14 +87,20 @@ public struct MapView: View {
             }
             .padding(.horizontal)
             .padding(.top, 8)
+            .padding(.bottom, 4)
         }
         .sheet(item: $viewModel.selectedStation) { station in
-            StationDetailView(station: station)
+            StationDetailView(station: station, initialFuelType: viewModel.selectedFuelType)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $isShowingSettings) {
-            SettingsView()
+            SettingsView {
+                refreshTask?.cancel()
+                refreshTask = Task {
+                    await viewModel.refreshStations(context: modelContext)
+                }
+            }
         }
         .task {
             // Synchronize saved preferences
@@ -109,9 +113,20 @@ public struct MapView: View {
             let centerCoord = locationManager.currentLocation ?? LocationManager.oettingenFallbackCoordinate
             await viewModel.fetchStations(around: centerCoord, context: modelContext)
         }
+        .onChange(of: locationManager.locationRevision) { _, _ in
+            Task {
+                await viewModel.handleLocationUpdate(context: modelContext)
+            }
+        }
+        .onChange(of: defaultFuelType) { _, newRaw in
+            if let fuel = FuelType(rawValue: newRaw) {
+                viewModel.selectedFuelType = fuel
+            }
+        }
         .onChange(of: savedRadius) { _, newRadius in
             viewModel.searchRadius = newRadius
-            Task {
+            refreshTask?.cancel()
+            refreshTask = Task {
                 await viewModel.refreshStations(context: modelContext)
             }
         }
@@ -223,8 +238,9 @@ public struct MapView: View {
             // Recenter Button
             Button {
                 HapticFeedback.impact(style: .light)
-                withAnimation {
-                    viewModel.centerOnUser()
+                refreshTask?.cancel()
+                refreshTask = Task {
+                    await viewModel.centerOnUser(context: modelContext)
                 }
             } label: {
                 Image(systemName: "location.fill")

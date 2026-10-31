@@ -16,18 +16,11 @@ public struct LowestPriceRecord: Sendable {
     }
 
     public var formattedTime: String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .none
-        formatter.timeStyle = .short
-        formatter.locale = Locale(identifier: "en_US")
-        return formatter.string(from: timestamp)
+        timestamp.formatted(date: .omitted, time: .shortened)
     }
 
     public var formattedDateTime: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "E, h:mm a"
-        formatter.locale = Locale(identifier: "en_US")
-        return formatter.string(from: timestamp)
+        timestamp.formatted(.dateTime.weekday(.abbreviated).hour().minute())
     }
 }
 

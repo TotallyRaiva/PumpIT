@@ -25,9 +25,12 @@ public struct StationsListView: View {
     private var sortedStations: [GasStation] {
         if sortByCheapest {
             return stations.sorted { s1, s2 in
-                let p1 = price(for: s1) ?? 999
-                let p2 = price(for: s2) ?? 999
-                return p1 < p2
+                let p1 = (s1.isOpen ? price(for: s1) : nil) ?? 999
+                let p2 = (s2.isOpen ? price(for: s2) : nil) ?? 999
+                if abs(p1 - p2) > 0.0001 {
+                    return p1 < p2
+                }
+                return (s1.dist ?? 999) < (s2.dist ?? 999)
             }
         } else {
             return stations.sorted { ($0.dist ?? 999) < ($1.dist ?? 999) }
@@ -43,7 +46,11 @@ public struct StationsListView: View {
     }
 
     private var lowestPrice: Double? {
-        stations.compactMap { price(for: $0) }.filter { $0 > 0 }.min()
+        stations
+            .filter { $0.isOpen }
+            .compactMap { price(for: $0) }
+            .filter { $0 > 0 }
+            .min()
     }
 
     public var body: some View {
@@ -86,7 +93,15 @@ public struct StationsListView: View {
                                     .foregroundStyle(.primary)
                                     .lineLimit(1)
 
-                                if let p = price(for: station), let low = lowestPrice, abs(p - low) < 0.001 {
+                                if !station.isOpen {
+                                    Text("CLOSED")
+                                        .font(.system(size: 9, weight: .bold))
+                                        .padding(.horizontal, 5)
+                                        .padding(.vertical, 2)
+                                        .background(Color.red.opacity(0.15))
+                                        .foregroundStyle(.red)
+                                        .clipShape(Capsule())
+                                } else if let p = price(for: station), let low = lowestPrice, abs(p - low) < 0.001 {
                                     Text("BEST")
                                         .font(.system(size: 9, weight: .bold))
                                         .padding(.horizontal, 5)

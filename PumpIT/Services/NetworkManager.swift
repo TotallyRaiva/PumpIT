@@ -77,62 +77,47 @@ public final class NetworkManager: Sendable {
     /// Runs on the MainActor since ModelContext is typically bound to the main actor.
     @MainActor
     public func savePriceLogs(for stations: [GasStation], in modelContext: ModelContext) {
-        let now = Date()
-        let fifteenMinutesAgo = now.addingTimeInterval(-15 * 60)
-
-        for station in stations where station.isOpen {
-            let priceTuples: [(FuelType, Double?)] = [
-                (.e5, station.priceE5),
-                (.e10, station.priceE10),
-                (.diesel, station.priceDiesel)
-            ]
-
-            for (fuelType, price) in priceTuples {
-                guard let price = price, price > 0 else { continue }
-
-                // Check recent log for duplicate price within 15 minutes to avoid redundant entries
-                let fuelTypeRaw = fuelType.rawValue
-                let stationID = station.id
-                var descriptor = FetchDescriptor<PriceLog>(
-                    predicate: #Predicate { log in
-                        log.stationID == stationID &&
-                        log.fuelType == fuelTypeRaw &&
-                        log.timestamp >= fifteenMinutesAgo
-                    },
-                    sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
-                )
-                descriptor.fetchLimit = 1
-
-                if let recentLogs = try? modelContext.fetch(descriptor),
-                   let latest = recentLogs.first,
-                   abs(latest.price - price) < 0.001 {
-                    // Price is identical to the entry recorded in last 15 min, skip
-                    continue
-                }
-
-                let newLog = PriceLog(
-                    stationID: station.id,
-                    price: price,
-                    timestamp: now,
-                    fuelType: fuelType.rawValue
-                )
-                modelContext.insert(newLog)
-            }
-        }
-
-        do {
-            try modelContext.save()
-        } catch {
-            print("Failed to save SwiftData price logs: \(error.localizedDescription)")
-        }
+        Self.persistPriceLogs(for: stations, in: modelContext)
     }
 
     /// Asynchronously saves fetched prices into SwiftData in the background using ModelContainer.
     public func savePriceLogsInBackground(for stations: [GasStation], container: ModelContainer) async {
         let backgroundContext = ModelContext(container)
+        Self.persistPriceLogs(for: stations, in: backgroundContext)
+    }
+
+    private static func persistPriceLogs(for stations: [GasStation], in context: ModelContext) {
         let now = Date()
         let fifteenMinutesAgo = now.addingTimeInterval(-15 * 60)
+        let expirationCutoff = now.addingTimeInterval(-48 * 3600)
 
+        // Prune logs older than 48 hours to prevent unbounded SQLite growth
+        try? context.delete(
+            model: PriceLog.self,
+            where: #Predicate { log in
+                log.timestamp < expirationCutoff
+            }
+        )
+
+        // Single batch query for all logs within the 15-minute deduplication window
+        let recentDescriptor = FetchDescriptor<PriceLog>(
+            predicate: #Predicate { log in
+                log.timestamp >= fifteenMinutesAgo
+            },
+            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+        )
+
+        var latestPrices: [String: Double] = [:]
+        if let recentLogs = try? context.fetch(recentDescriptor) {
+            for log in recentLogs {
+                let key = "\(log.stationID)|\(log.fuelType)"
+                if latestPrices[key] == nil {
+                    latestPrices[key] = log.price
+                }
+            }
+        }
+
+        var insertedAny = false
         for station in stations where station.isOpen {
             let priceTuples: [(FuelType, Double?)] = [
                 (.e5, station.priceE5),
@@ -143,38 +128,30 @@ public final class NetworkManager: Sendable {
             for (fuelType, price) in priceTuples {
                 guard let price = price, price > 0 else { continue }
 
-                let fuelTypeRaw = fuelType.rawValue
-                let stationID = station.id
-                var descriptor = FetchDescriptor<PriceLog>(
-                    predicate: #Predicate { log in
-                        log.stationID == stationID &&
-                        log.fuelType == fuelTypeRaw &&
-                        log.timestamp >= fifteenMinutesAgo
-                    },
-                    sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
-                )
-                descriptor.fetchLimit = 1
-
-                if let recentLogs = try? backgroundContext.fetch(descriptor),
-                   let latest = recentLogs.first,
-                   abs(latest.price - price) < 0.001 {
+                let key = "\(station.id)|\(fuelType.rawValue)"
+                if let latestPrice = latestPrices[key],
+                   abs(latestPrice - price) < 0.001 {
+                    // Price is identical to the entry recorded in last 15 min, skip
                     continue
                 }
 
+                latestPrices[key] = price
                 let newLog = PriceLog(
                     stationID: station.id,
                     price: price,
                     timestamp: now,
                     fuelType: fuelType.rawValue
                 )
-                backgroundContext.insert(newLog)
+                context.insert(newLog)
+                insertedAny = true
             }
         }
 
+        guard insertedAny || context.hasChanges else { return }
         do {
-            try backgroundContext.save()
+            try context.save()
         } catch {
-            print("Background price caching error: \(error.localizedDescription)")
+            print("Failed to save SwiftData price logs: \(error.localizedDescription)")
         }
     }
 }

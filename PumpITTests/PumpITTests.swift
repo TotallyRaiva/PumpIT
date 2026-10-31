@@ -109,4 +109,45 @@ final class PumpITTests: XCTestCase {
         XCTAssertNotNil(lowest)
         XCTAssertEqual(lowest?.price, 1.699)
     }
+
+    @MainActor
+    func testSavePriceLogsDeduplicationAndPruning() throws {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(for: PriceLog.self, configurations: config)
+        let context = container.mainContext
+
+        let now = Date()
+        // Insert an expired log (>48h ago) that should be pruned
+        let expiredLog = PriceLog(
+            stationID: "station-old",
+            price: 1.559,
+            timestamp: now.addingTimeInterval(-50 * 3600),
+            fuelType: FuelType.e5.rawValue
+        )
+        context.insert(expiredLog)
+        try context.save()
+
+        let station = GasStation(
+            id: "station-live",
+            name: "Aral Test",
+            lat: 48.95,
+            lng: 10.60,
+            priceE5: 1.729,
+            priceE10: 1.669,
+            priceDiesel: 1.599,
+            isOpen: true
+        )
+
+        // First save should prune expiredLog and insert 3 fuel logs for station-live
+        NetworkManager.shared.savePriceLogs(for: [station], in: context)
+
+        let allLogsAfterFirstSave = try context.fetch(FetchDescriptor<PriceLog>())
+        XCTAssertEqual(allLogsAfterFirstSave.count, 3)
+        XCTAssertTrue(allLogsAfterFirstSave.allSatisfy { $0.stationID == "station-live" })
+
+        // Saving identical prices immediately within 15 minutes should be deduplicated
+        NetworkManager.shared.savePriceLogs(for: [station], in: context)
+        let allLogsAfterSecondSave = try context.fetch(FetchDescriptor<PriceLog>())
+        XCTAssertEqual(allLogsAfterSecondSave.count, 3)
+    }
 }

@@ -11,10 +11,12 @@ public struct StationDetailView: View {
     @Environment(\.modelContext) private var modelContext
 
     public let station: GasStation
-    @State private var selectedTrendFuel: FuelType = .e5
+    @State private var selectedTrendFuel: FuelType
+    @State private var trendAnalysis: PriceTrendAnalysis?
 
-    public init(station: GasStation) {
+    public init(station: GasStation, initialFuelType: FuelType = .e5) {
         self.station = station
+        self._selectedTrendFuel = State(initialValue: initialFuelType)
     }
 
     public var body: some View {
@@ -47,6 +49,13 @@ public struct StationDetailView: View {
                             .font(.title3)
                     }
                 }
+            }
+            .task(id: selectedTrendFuel) {
+                trendAnalysis = PriceHistoryTracker.analyzeTrend(
+                    station: station,
+                    fuelType: selectedTrendFuel,
+                    in: modelContext
+                )
             }
         }
     }
@@ -121,14 +130,8 @@ public struct StationDetailView: View {
             }
             .pickerStyle(.segmented)
 
-            let analysis = PriceHistoryTracker.analyzeTrend(
-                station: station,
-                fuelType: selectedTrendFuel,
-                in: modelContext
-            )
-
             VStack(alignment: .leading, spacing: 10) {
-                if let record = analysis.lowestRecord {
+                if let analysis = trendAnalysis, let record = analysis.lowestRecord {
                     HStack(alignment: .center) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("24h Lowest Price")
@@ -180,16 +183,18 @@ public struct StationDetailView: View {
                     }
                 }
 
-                HStack(alignment: .top, spacing: 6) {
-                    Image(systemName: "lightbulb.fill")
-                        .font(.caption2)
-                        .foregroundStyle(.yellow)
-                        .padding(.top, 2)
-                    Text(analysis.recommendation)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                if let recommendation = trendAnalysis?.recommendation {
+                    HStack(alignment: .top, spacing: 6) {
+                        Image(systemName: "lightbulb.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.yellow)
+                            .padding(.top, 2)
+                        Text(recommendation)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.top, 2)
                 }
-                .padding(.top, 2)
             }
             .padding()
             .frame(maxWidth: .infinity, alignment: .leading)

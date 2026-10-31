@@ -10,12 +10,17 @@ public struct SettingsView: View {
 
     @AppStorage("default_fuel_type") private var defaultFuelType: String = FuelType.e5.rawValue
     @AppStorage("search_radius") private var searchRadius: Double = 5.0
-    @AppStorage("tankerkoenig_custom_api_key") private var customAPIKey: String = ""
     @AppStorage("sort_by_cheapest") private var sortByCheapest: Bool = true
 
-    @State private var showingAPIKeySavedAlert = false
+    @State private var draftRadius: Double = 5.0
+    @State private var customAPIKey: String = ""
+    @State private var initialAPIKey: String = ""
 
-    public init() {}
+    private let onAPIKeyChanged: (() -> Void)?
+
+    public init(onAPIKeyChanged: (() -> Void)? = nil) {
+        self.onAPIKeyChanged = onAPIKeyChanged
+    }
 
     public var body: some View {
         NavigationStack {
@@ -62,13 +67,17 @@ public struct SettingsView: View {
                         HStack {
                             Text("Search Radius")
                             Spacer()
-                            Text(String(format: "%.0f km", searchRadius))
+                            Text(String(format: "%.0f km", draftRadius))
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(.secondary)
                         }
 
-                        Slider(value: $searchRadius, in: 2.0...25.0, step: 1.0)
-                            .tint(.teal)
+                        Slider(value: $draftRadius, in: 2.0...25.0, step: 1.0) { isEditing in
+                            if !isEditing {
+                                searchRadius = draftRadius
+                            }
+                        }
+                        .tint(.teal)
                     }
 
                     Toggle("Sort Results by Lowest Price", isOn: $sortByCheapest)
@@ -82,17 +91,21 @@ public struct SettingsView: View {
                     SecureField("Custom API Key (Optional)", text: $customAPIKey)
                         .autocorrectionDisabled(true)
                         .textInputAutocapitalization(.never)
+                        .onChange(of: customAPIKey) { _, newValue in
+                            AppConfiguration.customAPIKey = newValue
+                        }
 
                     HStack {
                         Image(systemName: "checkmark.shield.fill")
                             .foregroundStyle(.green)
-                        Text("Active & Secured")
+                        Text("Active & Secured in Keychain")
                             .font(.caption.weight(.medium))
                             .foregroundStyle(.secondary)
                         Spacer()
                         if !customAPIKey.isEmpty {
                             Button("Clear") {
                                 customAPIKey = ""
+                                AppConfiguration.customAPIKey = ""
                                 HapticFeedback.impact(style: .light)
                             }
                             .font(.caption)
@@ -142,6 +155,20 @@ public struct SettingsView: View {
                         dismiss()
                     }
                     .font(.body.weight(.semibold))
+                }
+            }
+            .onAppear {
+                draftRadius = searchRadius
+                let storedKey = AppConfiguration.customAPIKey
+                customAPIKey = storedKey
+                initialAPIKey = storedKey
+            }
+            .onDisappear {
+                if draftRadius != searchRadius {
+                    searchRadius = draftRadius
+                }
+                if customAPIKey != initialAPIKey {
+                    onAPIKeyChanged?()
                 }
             }
         }

@@ -22,6 +22,9 @@ public final class LocationManager: NSObject, CLLocationManagerDelegate, @unchec
     public var currentLocation: CLLocationCoordinate2D?
     public var authorizationStatus: CLAuthorizationStatus = .notDetermined
     public var locationError: String?
+    public private(set) var locationRevision: Int = 0
+
+    private var pendingLocationRequest: Bool = false
 
     public var effectiveCoordinate: CLLocationCoordinate2D {
         currentLocation ?? Self.oettingenFallbackCoordinate
@@ -41,8 +44,17 @@ public final class LocationManager: NSObject, CLLocationManagerDelegate, @unchec
     }
 
     public func requestCurrentLocation() {
-        requestAuthorization()
-        clManager.requestLocation()
+        switch clManager.authorizationStatus {
+        case .notDetermined:
+            pendingLocationRequest = true
+            clManager.requestWhenInUseAuthorization()
+        case .authorizedWhenInUse, .authorizedAlways:
+            clManager.requestLocation()
+        case .denied, .restricted:
+            locationError = "Location access was denied. Using Oettingen as default."
+        @unknown default:
+            break
+        }
     }
 
     public func startUpdatingLocation() {
@@ -60,8 +72,10 @@ public final class LocationManager: NSObject, CLLocationManagerDelegate, @unchec
         authorizationStatus = manager.authorizationStatus
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
+            pendingLocationRequest = false
             clManager.requestLocation()
         case .denied, .restricted:
+            pendingLocationRequest = false
             locationError = "Location access was denied. Using Oettingen as default."
         default:
             break
@@ -72,9 +86,14 @@ public final class LocationManager: NSObject, CLLocationManagerDelegate, @unchec
         guard let location = locations.last else { return }
         currentLocation = location.coordinate
         locationError = nil
+        locationRevision &+= 1
     }
 
     public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        if let clError = error as? CLError, clError.code == .locationUnknown {
+            // CoreLocation is temporarily unable to obtain a fix and will keep trying
+            return
+        }
         locationError = error.localizedDescription
     }
 }
