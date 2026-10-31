@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy / Datenschutzerklärung — PumpIT</title>
+  <link rel="icon" type="image/png" href="assets/icon.png" />
+  <style>
+    :root {
+      --bg-deep: #060f22;
+      --bg-card: rgba(14, 29, 62, 0.78);
+      --border-subtle: rgba(112, 223, 78, 0.18);
+      --accent-teal: #13ad7e;
+      --accent-lime: #7ded69;
+      --text-primary: #f4f8ff;
+      --text-secondary: #9cb0d4;
+      --gradient-brand: linear-gradient(135deg, #13ad7e 0%, #39d67c 50%, #7ded69 100%);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(180deg, #060f22 0%, #091634 100%);
+      color: var(--text-primary);
+      line-height: 1.68;
+      min-height: 100vh;
+    }
+    html[data-lang="en"] [lang="de"] { display: none !important; }
+    html[data-lang="de"] [lang="en"] { display: none !important; }
+    header {
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      background: rgba(6, 15, 34, 0.82);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .nav-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0.9rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      text-decoration: none;
+      color: var(--text-primary);
+      font-weight: 700;
+      font-size: 1.15rem;
+    }
+    .brand img { width: 34px; height: 34px; border-radius: 8px; }
+    .nav-links { display: flex; align-items: center; gap: 1.2rem; }
+    .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; }
+    .nav-links a:hover { color: var(--accent-lime); }
+    .lang-switch {
+      display: inline-flex;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      padding: 3px;
+    }
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 0.28rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .lang-btn.active {
+      background: var(--gradient-brand);
+      color: #041022;
+    }
+    main {
+      max-width: 900px;
+      margin: 2.5rem auto 4rem;
+      padding: 0 1.5rem;
+    }
+    .policy-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 22px;
+      padding: 2.5rem;
+    }
+    h1 { font-size: 2rem; margin-bottom: 0.4rem; }
+    .updated { color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 2rem; }
+    h2 {
+      font-size: 1.22rem;
+      color: var(--accent-lime);
+      margin: 1.8rem 0 0.6rem;
+    }
+    p, li { color: var(--text-secondary); font-size: 0.96rem; margin-bottom: 0.75rem; }
+    ul { padding-left: 1.35rem; margin-bottom: 1rem; }
+    a { color: var(--accent-lime); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav-container">
+      <a href="./" class="brand">
+        <img src="assets/icon.png" alt="PumpIT Icon" />
+        <span>PumpIT</span>
+      </a>
+      <div class="nav-links">
+        <a href="./">
+          <span lang="en">&larr; Overview</span>
+          <span lang="de">&larr; Übersicht</span>
+        </a>
+        <a href="support.html">Support</a>
+        <div class="lang-switch">
+          <button type="button" class="lang-btn active" id="btn-en" onclick="setLanguage('en')">EN</button>
+          <button type="button" class="lang-btn" id="btn-de" onclick="setLanguage('de')">DE</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- English Privacy Policy -->
+    <div class="policy-card" lang="en">
+      <h1>Privacy Policy</h1>
+      <p class="updated">Last updated: October 2026</p>
+
+      <p>
+        <strong>PumpIT</strong> is built with a strict privacy-first principle. We do not collect, store, or sell personal data, and the app contains no third-party advertising or analytics trackers.
+      </p>
+
+      <h2>1. Location Data (When In Use)</h2>
+      <p>
+        If you grant location permission, PumpIT uses Apple's <code>CoreLocation</code> framework solely while the app is in use to determine your approximate coordinates so it can display nearby gas stations in Germany.
+      </p>
+      <ul>
+        <li>Your geographic coordinates are transmitted directly over HTTPS to the public <strong>Tankerkönig API</strong> (<code>creativecommons.tankerkoenig.de</code>) solely to fetch fuel stations within your selected search radius.</li>
+        <li>Your location history is never uploaded to any developer-owned server or shared with advertising networks.</li>
+        <li>You can use PumpIT at any time without granting location access by using the built-in city search.</li>
+      </ul>
+
+      <h2>2. Local On-Device Storage (SwiftData &amp; Keychain)</h2>
+      <ul>
+        <li><strong>Price History:</strong> Fuel price snapshots fetched while browsing are stored locally on your device using Apple's <code>SwiftData</code> framework to calculate 24-hour price trends. Records older than 48 hours are automatically deleted on-device.</li>
+        <li><strong>Preferences &amp; API Key:</strong> App preferences (default fuel type, search radius, sort order) are stored locally in <code>UserDefaults</code>. If you configure an optional custom Tankerkönig API key, it is stored locally and encrypted in the iOS <code>Keychain</code>.</li>
+      </ul>
+
+      <h2>3. Third-Party Services &amp; External Map Apps</h2>
+      <ul>
+        <li><strong>Tankerkönig API:</strong> Real-time fuel prices are retrieved from <a href="https://creativecommons.tankerkoenig.de" target="_blank" rel="noopener">Tankerkönig</a> (licensed under CC BY 4.0, official data from Bundeskartellamt MTS-K). Standard HTTPS request metadata (such as IP address and requested search coordinates) is processed by Tankerkönig to fulfill the API request.</li>
+        <li><strong>Navigation Handoff:</strong> When you tap "Open in Apple Maps", "Open in Google Maps", or "Open in Waze", only the selected gas station's coordinates are passed to the respective navigation app on your device.</li>
+      </ul>
+
+      <h2>4. Your Rights &amp; Contact</h2>
+      <p>
+        Because all app state is stored locally on your iOS device, you can erase all stored price history, preferences, and Keychain entries at any time by clearing the API key in Settings or uninstalling the app. For questions regarding privacy, please reach out via our <a href="support.html">Support Page</a> or <a href="https://github.com/TotallyRaiva/PumpIT/issues" target="_blank" rel="noopener">GitHub Issues</a>.
+      </p>
+    </div>
+
+    <!-- German Privacy Policy (Datenschutzerklärung) -->
+    <div class="policy-card" lang="de">
+      <h1>Datenschutzerklärung</h1>
+      <p class="updated">Stand: Oktober 2026</p>
+
+      <p>
+        <strong>PumpIT</strong> wurde nach dem Prinzip der Datensparsamkeit („Privacy by Design“) entwickelt. Wir erheben, speichern oder verkaufen keine personenbezogenen Nutzerdaten und setzen keinerlei Werbe- oder Analyse-Tracker ein.
+      </p>
+
+      <h2>1. Standortdaten (Beim Verwenden der App)</h2>
+      <p>
+        Wenn Sie den Standortzugriff erlauben, nutzt PumpIT Apples <code>CoreLocation</code>-Framework ausschließlich während der aktiven Nutzung der App, um Tankstellen in Ihrer Umgebung anzuzeigen.
+      </p>
+      <ul>
+        <li>Die aktuellen Koordinaten werden per verschlüsselter HTTPS-Verbindung direkt an die öffentliche <strong>Tankerkönig-API</strong> (<code>creativecommons.tankerkoenig.de</code>) übermittelt, um Tankstellen im gewählten Umkreis abzurufen.</li>
+        <li>Es erfolgt keine Speicherung von Bewegungsprofilen und keine Weitergabe an Dritte oder Werbenetzwerke.</li>
+        <li>Sie können PumpIT jederzeit auch ohne Standortfreigabe über die integrierte Stadtsuche nutzen.</li>
+      </ul>
+
+      <h2>2. Lokale Gerätespeicherung (SwiftData &amp; Keychain)</h2>
+      <ul>
+        <li><strong>Preishistorie:</strong> Abgerufene Kraftstoffpreise werden lokal auf Ihrem iPhone mittels Apples <code>SwiftData</code> gespeichert, um den 24-Stunden-Preistrend zu berechnen. Einträge, die älter als 48 Stunden sind, werden automatisch auf dem Gerät gelöscht.</li>
+        <li><strong>Einstellungen &amp; API-Schlüssel:</strong> Einstellungen (Standard-Kraftstoffsorte, Suchradius, Sortierung) werden lokal in <code>UserDefaults</code> abgelegt. Ein optional hinterlegter eigener Tankerkönig-API-Schlüssel wird geschützt in der nativen iOS-<code>Keychain</code> gespeichert.</li>
+      </ul>
+
+      <h2>3. Externe Dienste &amp; Navigations-Apps</h2>
+      <ul>
+        <li><strong>Tankerkönig-API:</strong> Echtzeit-Kraftstoffpreise stammen von <a href="https://creativecommons.tankerkoenig.de" target="_blank" rel="noopener">Tankerkönig</a> (Lizenz CC BY 4.0, offizielle Daten der Markttransparenzstelle für Kraftstoffe / MTS-K). Zur technischen Bereitstellung der Schnittstelle werden bei Abrufen technisch notwendige Verbindungsdaten (IP-Adresse sowie abgefragte Suchkoordinaten) durch Tankerkönig verarbeitet.</li>
+        <li><strong>Navigationsübergabe:</strong> Beim Antippen von „Apple Karten“, „Google Maps“ oder „Waze“ werden lediglich die Zielkoordinaten der gewählten Tankstelle an die jeweilige App übergeben.</li>
+      </ul>
+
+      <h2>4. Ihre Rechte &amp; Kontakt</h2>
+      <p>
+        Da sämtliche App-Daten lokal auf Ihrem Endgerät verbleiben, können Sie alle gespeicherten Daten jederzeit durch Deinstallation der App vollständig löschen. Bei Fragen zum Datenschutz erreichen Sie uns über unsere <a href="support.html">Support-Seite</a> oder über <a href="https://github.com/TotallyRaiva/PumpIT/issues" target="_blank" rel="noopener">GitHub Issues</a>.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    function setLanguage(lang) {
+      const validLang = (lang === 'de') ? 'de' : 'en';
+      document.documentElement.setAttribute('lang', validLang);
+      document.documentElement.setAttribute('data-lang', validLang);
+      document.getElementById('btn-en').classList.toggle('active', validLang === 'en');
+      document.getElementById('btn-de').classList.toggle('active', validLang === 'de');
+      try { localStorage.setItem('pumpit_lang', validLang); } catch (e) {}
+    }
+    (function initLanguage() {
+      const params = new URLSearchParams(window.location.search);
+      const queryLang = params.get('lang');
+      let savedLang = null;
+      try { savedLang = localStorage.getItem('pumpit_lang'); } catch (e) {}
+      const browserLang = (navigator.language || '').toLowerCase().startsWith('de') ? 'de' : 'en';
+      setLanguage(queryLang || savedLang || browserLang);
+    })();
+  </script>
+</body>
+</html>

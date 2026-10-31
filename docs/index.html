@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PumpIT — Smart Fuel Price Tracker for Germany (iOS)</title>
+  <meta name="description" content="Real-time E5, E10 & Diesel fuel prices across Germany, 24h price trend analysis, and instant navigation via Apple Maps, Google Maps & Waze." />
+  <link rel="icon" type="image/png" href="assets/icon.png" />
+  <link rel="apple-touch-icon" href="assets/icon.png" />
+  <style>
+    :root {
+      --bg-deep: #060f22;
+      --bg-card: rgba(14, 29, 62, 0.72);
+      --bg-card-hover: rgba(20, 40, 82, 0.85);
+      --border-subtle: rgba(112, 223, 78, 0.18);
+      --accent-teal: #13ad7e;
+      --accent-lime: #7ded69;
+      --text-primary: #f4f8ff;
+      --text-secondary: #9cb0d4;
+      --text-muted: #6c82ab;
+      --gradient-brand: linear-gradient(135deg, #13ad7e 0%, #39d67c 50%, #7ded69 100%);
+      --shadow-glow: 0 20px 50px rgba(19, 173, 126, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-deep);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 15% 15%, rgba(19, 173, 126, 0.18), transparent 40%),
+        radial-gradient(circle at 85% 20%, rgba(125, 237, 105, 0.12), transparent 35%),
+        linear-gradient(180deg, #060f22 0%, #091634 60%, #050c1a 100%);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Language visibility */
+    html[data-lang="en"] [lang="de"] { display: none !important; }
+    html[data-lang="de"] [lang="en"] { display: none !important; }
+
+    /* Navbar */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      background: rgba(6, 15, 34, 0.78);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-container {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 0.9rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--text-primary);
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand img {
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+      box-shadow: 0 4px 14px rgba(19, 173, 126, 0.35);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--accent-lime);
+    }
+
+    .lang-switch {
+      display: inline-flex;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      padding: 3px;
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .lang-btn.active {
+      background: var(--gradient-brand);
+      color: #041022;
+      box-shadow: 0 2px 8px rgba(57, 214, 124, 0.35);
+    }
+
+    /* Main layout */
+    .container {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* Hero */
+    .hero {
+      padding: 4.5rem 0 3.5rem;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 3rem;
+      align-items: center;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.35rem 0.85rem;
+      border-radius: 999px;
+      background: rgba(19, 173, 126, 0.15);
+      border: 1px solid var(--border-subtle);
+      color: var(--accent-lime);
+    }
+
+    .hero-icon-title {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .hero-icon {
+      width: 84px;
+      height: 84px;
+      border-radius: 20px;
+      box-shadow: var(--shadow-glow);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      font-weight: 800;
+    }
+
+    .gradient-text {
+      background: var(--gradient-brand);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-lead {
+      font-size: 1.12rem;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      max-width: 580px;
+    }
+
+    .cta-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--gradient-brand);
+      color: #051329;
+      font-weight: 700;
+      font-size: 0.98rem;
+      padding: 0.85rem 1.5rem;
+      border-radius: 14px;
+      text-decoration: none;
+      box-shadow: 0 10px 25px rgba(19, 173, 126, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(57, 214, 124, 0.42);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-primary);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      font-weight: 600;
+      font-size: 0.98rem;
+      padding: 0.85rem 1.4rem;
+      border-radius: 14px;
+      text-decoration: none;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--accent-lime);
+    }
+
+    /* Interactive Phone Mockup */
+    .phone-Preview {
+      background: linear-gradient(160deg, #0d1f43 0%, #071229 100%);
+      border: 2px solid rgba(125, 237, 105, 0.22);
+      border-radius: 36px;
+      padding: 1.25rem;
+      box-shadow: 0 28px 60px rgba(0, 0, 0, 0.55), var(--shadow-glow);
+      max-width: 370px;
+      margin: 0 auto;
+    }
+
+    .phone-notch {
+      width: 96px;
+      height: 22px;
+      background: #030813;
+      border-radius: 999px;
+      margin: 0 auto 1rem;
+    }
+
+    .mock-search {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 0.55rem 0.8rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.65rem;
+    }
+
+    .mock-chips {
+      display: flex;
+      gap: 0.4rem;
+      overflow: hidden;
+      margin-bottom: 0.9rem;
+    }
+
+    .mock-chip {
+      font-size: 0.7rem;
+      padding: 0.22rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-primary);
+      white-space: nowrap;
+    }
+
+    .mock-map {
+      background:
+        radial-gradient(circle at 60% 40%, rgba(19, 173, 126, 0.2), transparent 60%),
+        #0a1936;
+      border-radius: 18px;
+      padding: 1rem;
+      margin-bottom: 0.9rem;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .pin-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .price-pin {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: #198c59;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.78rem;
+      padding: 0.3rem 0.65rem;
+      border-radius: 999px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .price-pin.selected {
+      background: #0a84ff;
+      border: 2px solid #fff;
+      transform: scale(1.06);
+    }
+
+    .mock-card {
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 0.9rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .mock-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .status-open {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--accent-lime);
+      background: rgba(125, 237, 105, 0.14);
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+    }
+
+    .mock-prices {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.45rem;
+      margin: 0.65rem 0;
+    }
+
+    .mock-price-box {
+      background: rgba(6, 15, 34, 0.7);
+      border-radius: 10px;
+      padding: 0.45rem;
+      text-align: center;
+    }
+
+    .mock-price-box small {
+      display: block;
+      font-size: 0.65rem;
+      color: var(--text-secondary);
+    }
+
+    .mock-price-box strong {
+      font-size: 0.92rem;
+      color: var(--accent-lime);
+    }
+
+    /* Sections */
+    section {
+      padding: 4rem 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 700px;
+      margin: 0 auto 3rem;
+    }
+
+    .section-header h2 {
+      font-size: clamp(1.75rem, 3vw, 2.35rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.6rem;
+    }
+
+    .section-header p {
+      color: var(--text-secondary);
+      font-size: 1.02rem;
+    }
+
+    /* Grid cards */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 1.75rem;
+      transition: transform 0.2s, border-color 0.2s, background 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      background: var(--bg-card-hover);
+      border-color: var(--border-subtle);
+    }
+
+    .card-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      background: rgba(19, 173, 126, 0.16);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      margin-bottom: 1.1rem;
+    }
+
+    .card h3 {
+      font-size: 1.18rem;
+      margin-bottom: 0.55rem;
+      font-weight: 700;
+    }
+
+    .card p {
+      color: var(--text-secondary);
+      font-size: 0.94rem;
+    }
+
+    /* Tech Stack Table / Grid */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.1rem;
+    }
+
+    .arch-item {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 1.15rem 1.3rem;
+    }
+
+    .arch-item strong {
+      display: block;
+      color: var(--accent-lime);
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .arch-item span {
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 2.5rem 0 3.5rem;
+      color: var(--text-muted);
+      font-size: 0.88rem;
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent-lime);
+    }
+
+    @media (max-width: 860px) {
+      .hero {
+        grid-template-columns: 1fr;
+        text-align: left;
+        padding-top: 2.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header>
+    <div class="nav-container">
+      <a href="./" class="brand">
+        <img src="assets/icon.png" alt="PumpIT Icon" />
+        <span>PumpIT</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="#features">
+          <span lang="en">Features</span>
+          <span lang="de">Funktionen</span>
+        </a>
+        <a href="#architecture">
+          <span lang="en">Architecture</span>
+          <span lang="de">Architektur</span>
+        </a>
+        <a href="privacy.html">
+          <span lang="en">Privacy Policy</span>
+          <span lang="de">Datenschutz</span>
+        </a>
+        <a href="support.html">
+          <span lang="en">Support</span>
+          <span lang="de">Support &amp; Hilfe</span>
+        </a>
+
+        <div class="lang-switch" role="group" aria-label="Language Switcher">
+          <button type="button" class="lang-btn active" id="btn-en" onclick="setLanguage('en')">EN</button>
+          <button type="button" class="lang-btn" id="btn-de" onclick="setLanguage('de')">DE</button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Hero Section -->
+    <section class="hero" style="border-top: none;">
+      <div>
+        <div class="badge-row">
+          <span class="pill">iOS 17+ &bull; SwiftUI &bull; SwiftData</span>
+          <span class="pill">
+            <span lang="en">Official MTS-K Real-Time Data</span>
+            <span lang="de">Offizielle MTS-K Echtzeitdaten</span>
+          </span>
+        </div>
+
+        <div class="hero-icon-title">
+          <img src="assets/icon.png" alt="PumpIT App Icon" class="hero-icon" />
+          <div>
+            <h1 lang="en">Fuel Smarter with <span class="gradient-text">PumpIT</span></h1>
+            <h1 lang="de">Clever tanken mit <span class="gradient-text">PumpIT</span></h1>
+          </div>
+        </div>
+
+        <p class="hero-lead" lang="en">
+          PumpIT is a native iOS fuel price companion for Germany. Compare live Super E5, Super E10, and Diesel prices on an interactive map, track 24-hour price lows on-device with SwiftData, and start turn-by-turn navigation in one tap.
+        </p>
+        <p class="hero-lead" lang="de">
+          PumpIT ist Ihr nativer iOS-Begleiter für Spritpreise in Deutschland. Vergleichen Sie Live-Preise für Super E5, Super E10 und Diesel auf einer interaktiven Karte, analysieren Sie 24-Stunden-Tiefstpreise lokal mit SwiftData und starten Sie die Navigation mit einem Fingertipp.
+        </p>
+
+        <div class="cta-group">
+          <a href="https://github.com/TotallyRaiva/PumpIT" class="btn-primary" target="_blank" rel="noopener">
+            <span lang="en">View on GitHub</span>
+            <span lang="de">Auf GitHub ansehen</span>
+          </a>
+          <a href="privacy.html" class="btn-secondary">
+            <span lang="en">App Store Privacy Policy</span>
+            <span lang="de">Datenschutzerklärung</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Interactive App Preview Card -->
+      <div class="phone-Preview" aria-label="PumpIT App Interface Preview">
+        <div class="phone-notch"></div>
+        <div class="mock-search">
+          <span lang="en">🔍 Search city in Germany...</span>
+          <span lang="de">🔍 Stadt in Deutschland suchen...</span>
+          <strong style="color: #0a84ff;">Search</strong>
+        </div>
+        <div class="mock-chips">
+          <span class="mock-chip">München</span>
+          <span class="mock-chip">Berlin</span>
+          <span class="mock-chip">Nürnberg</span>
+          <span class="mock-chip">Hamburg</span>
+        </div>
+        <div class="mock-map">
+          <div class="pin-row">
+            <span class="price-pin">⛽ 1.65 €</span>
+            <span class="price-pin selected">⛽ 1.59 € &bull; BEST</span>
+          </div>
+          <div class="pin-row" style="justify-content: flex-end;">
+            <span class="price-pin">⛽ 1.68 €</span>
+          </div>
+        </div>
+        <div class="mock-card">
+          <div class="mock-card-header">
+            <div>
+              <div style="font-size: 0.7rem; color: #0a84ff; font-weight: 700;">TOTALENERGIES</div>
+              <div style="font-weight: 700; font-size: 0.95rem;">Augsburger Str. 88</div>
+            </div>
+            <span class="status-open">
+              <span lang="en">Open</span>
+              <span lang="de">Geöffnet</span>
+            </span>
+          </div>
+          <div class="mock-prices">
+            <div class="mock-price-box">
+              <small>Super E5</small>
+              <strong>1.699 €</strong>
+            </div>
+            <div class="mock-price-box">
+              <small>Super E10</small>
+              <strong>1.639 €</strong>
+            </div>
+            <div class="mock-price-box">
+              <small>Diesel</small>
+              <strong>1.579 €</strong>
+            </div>
+          </div>
+          <div style="font-size: 0.74rem; color: var(--accent-lime); margin-top: 0.35rem;">
+            <span lang="en">✓ Optimal: Currently at 24h lowest price!</span>
+            <span lang="de">✓ Optimal: Aktuell auf dem 24h-Tiefstpreis!</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features">
+      <div class="section-header">
+        <h2 lang="en">Designed for Everyday Drivers</h2>
+        <h2 lang="de">Entwickelt für den Alltag auf der Straße</h2>
+        <p lang="en">Everything you need to find the cheapest fuel station in seconds—without ads, clutter, or tracking.</p>
+        <p lang="de">Alles, was Sie brauchen, um in Sekunden die günstigste Tankstelle zu finden – ohne Werbung, Ballast oder Tracking.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-icon">🗺️</div>
+          <h3 lang="en">Live Price Map &amp; List View</h3>
+          <h3 lang="de">Live-Preiskarte &amp; Listenansicht</h3>
+          <p lang="en">
+            Browse nearby stations with custom capsule price markers on Apple MapKit or switch to a sorted list highlighting the cheapest open station with a <strong>BEST</strong> badge.
+          </p>
+          <p lang="de">
+            Entdecken Sie Tankstellen in Ihrer Nähe mit übersichtlichen Preismarkern auf Apple MapKit oder wechseln Sie zur sortierten Liste mit <strong>BEST</strong>-Markierung für den günstigsten Preis.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">📉</div>
+          <h3 lang="en">24h Price Trend &amp; Smart Timing</h3>
+          <h3 lang="de">24h-Preistrend &amp; Tankempfehlung</h3>
+          <p lang="en">
+            Backed by local SwiftData storage, PumpIT tracks 24-hour price lows per station and advises whether to refuel right now or wait for Germany's evening price drop.
+          </p>
+          <p lang="de">
+            Dank lokaler SwiftData-Speicherung protokolliert PumpIT die 24-Stunden-Tiefstpreise jeder Station und gibt Empfehlungen für das optimale Abend-Zeitfenster.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🧭</div>
+          <h3 lang="en">One-Tap Multi-App Navigation</h3>
+          <h3 lang="de">Direkt-Navigation mit Ihrer App</h3>
+          <p lang="en">
+            Start driving immediately using your preferred navigation app. PumpIT supports direct deep-link routing to <strong>Apple Maps</strong>, <strong>Google Maps</strong>, and <strong>Waze</strong>.
+          </p>
+          <p lang="de">
+            Starten Sie die Zielführung direkt in Ihrer bevorzugten Navigations-App. Unterstützt werden <strong>Apple Karten</strong>, <strong>Google Maps</strong> und <strong>Waze</strong>.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🏙️</div>
+          <h3 lang="en">Germany-Wide City Search</h3>
+          <h3 lang="de">Deutschlandweite Stadtsuche</h3>
+          <p lang="en">
+            Planning a trip along the Autobahn? Search any German city or region via <code>MKLocalSearch</code> or tap quick-jump chips for Berlin, München, Hamburg, Nürnberg, Frankfurt, and Köln.
+          </p>
+          <p lang="de">
+            Unterwegs auf der Autobahn? Suchen Sie jede Stadt oder Region in Deutschland über <code>MKLocalSearch</code> oder nutzen Sie Schnellwahl-Chips für große Metropolen.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🔐</div>
+          <h3 lang="en">Privacy-First &amp; Keychain Security</h3>
+          <h3 lang="de">Datenschutz &amp; Keychain-Sicherheit</h3>
+          <p lang="en">
+            No user accounts, no third-party analytics SDKs, and no tracking. Optional custom Tankerkönig API keys are stored encrypted in the native iOS Keychain.
+          </p>
+          <p lang="de">
+            Keine Benutzerkonten, keine Analyse-Tracker und keine Werbenetzwerke. Eigene Tankerkönig-API-Schlüssel werden sicher in der nativen iOS-Keychain gespeichert.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h3 lang="en">Official MTS-K Data Feed</h3>
+          <h3 lang="de">Offizielle MTS-K Preisdaten</h3>
+          <p lang="en">
+            Powered by the Tankerkönig API (CC BY 4.0) with live fuel prices reported directly to the German Federal Cartel Office's Market Transparency Unit for Fuels (MTS-K).
+          </p>
+          <p lang="de">
+            Basierend auf der Tankerkönig-API (CC BY 4.0) mit offiziellen Echtzeitdaten der Markttransparenzstelle für Kraftstoffe (MTS-K) beim Bundeskartellamt.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Architecture Overview -->
+    <section id="architecture">
+      <div class="section-header">
+        <h2 lang="en">Technical Project Overview</h2>
+        <h2 lang="de">Technische Projektübersicht</h2>
+        <p lang="en">Built with modern Swift concurrency, strict actor isolation, and zero external third-party dependencies.</p>
+        <p lang="de">Entwickelt mit moderner Swift-Concurrency, strikter Actor-Isolation und ohne externe Drittanbieter-Abhängigkeiten.</p>
+      </div>
+
+      <div class="arch-grid">
+        <div class="arch-item">
+          <strong>SwiftUI &amp; @Observable</strong>
+          <span lang="en">Reactive MVVM architecture powered by iOS 17 Observation framework and MainActor isolation.</span>
+          <span lang="de">Reaktive MVVM-Architektur auf Basis des iOS 17 Observation-Frameworks und MainActor-Isolation.</span>
+        </div>
+        <div class="arch-item">
+          <strong>SwiftData Persistence</strong>
+          <span lang="en">Batch-deduplicated local price logging with automatic 48-hour rolling window pruning.</span>
+          <span lang="de">Batch-deduplizierte lokale Preisprotokollierung mit automatischer 48-Stunden-Bereinigung.</span>
+        </div>
+        <div class="arch-item">
+          <strong>MapKit &amp; CoreLocation</strong>
+          <span lang="en">Custom annotation markers, dynamic region search, and battery-efficient HundredMeters accuracy.</span>
+          <span lang="de">Eigene Preis-Annotationen, dynamische Regionssuche und akkuschonende Standortbestimmung.</span>
+        </div>
+        <div class="arch-item">
+          <strong>iOS Keychain Services</strong>
+          <span lang="en">Hardware-backed credential storage for user-configured API keys via <code>Security.framework</code>.</span>
+          <span lang="de">Sichere Speicherung benutzerdefinierter API-Schlüssel über das native <code>Security.framework</code>.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container footer-inner">
+      <div>
+        <strong>PumpIT</strong> &mdash;
+        <span lang="en">Smart Fuel Tracker Germany. Price data by <a href="https://creativecommons.tankerkoenig.de" target="_blank" rel="noopener" style="color: var(--accent-lime);">Tankerkönig</a> (CC BY 4.0 / MTS-K).</span>
+        <span lang="de">Smarter Spritpreis-Tracker Deutschland. Preisdaten von <a href="https://creativecommons.tankerkoenig.de" target="_blank" rel="noopener" style="color: var(--accent-lime);">Tankerkönig</a> (CC BY 4.0 / MTS-K).</span>
+      </div>
+      <div class="footer-links">
+        <a href="privacy.html">
+          <span lang="en">Privacy Policy</span>
+          <span lang="de">Datenschutzerklärung</span>
+        </a>
+        <a href="support.html">
+          <span lang="en">Support</span>
+          <span lang="de">Support</span>
+        </a>
+        <a href="https://github.com/TotallyRaiva/PumpIT" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function setLanguage(lang) {
+      const validLang = (lang === 'de') ? 'de' : 'en';
+      document.documentElement.setAttribute('lang', validLang);
+      document.documentElement.setAttribute('data-lang', validLang);
+      document.getElementById('btn-en').classList.toggle('active', validLang === 'en');
+      document.getElementById('btn-de').classList.toggle('active', validLang === 'de');
+      try { localStorage.setItem('pumpit_lang', validLang); } catch (e) {}
+    }
+
+    (function initLanguage() {
+      const params = new URLSearchParams(window.location.search);
+      const queryLang = params.get('lang');
+      let savedLang = null;
+      try { savedLang = localStorage.getItem('pumpit_lang'); } catch (e) {}
+      const browserLang = (navigator.language || '').toLowerCase().startsWith('de') ? 'de' : 'en';
+      setLanguage(queryLang || savedLang || browserLang);
+    })();
+  </script>
+</body>
+</html>

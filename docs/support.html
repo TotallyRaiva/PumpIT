@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" data-lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support &amp; FAQ — PumpIT</title>
+  <link rel="icon" type="image/png" href="assets/icon.png" />
+  <style>
+    :root {
+      --bg-deep: #060f22;
+      --bg-card: rgba(14, 29, 62, 0.78);
+      --border-subtle: rgba(112, 223, 78, 0.18);
+      --accent-teal: #13ad7e;
+      --accent-lime: #7ded69;
+      --text-primary: #f4f8ff;
+      --text-secondary: #9cb0d4;
+      --gradient-brand: linear-gradient(135deg, #13ad7e 0%, #39d67c 50%, #7ded69 100%);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(180deg, #060f22 0%, #091634 100%);
+      color: var(--text-primary);
+      line-height: 1.65;
+      min-height: 100vh;
+    }
+    html[data-lang="en"] [lang="de"] { display: none !important; }
+    html[data-lang="de"] [lang="en"] { display: none !important; }
+    header {
+      position: sticky;
+      top: 0;
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      background: rgba(6, 15, 34, 0.82);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .nav-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0.9rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      text-decoration: none;
+      color: var(--text-primary);
+      font-weight: 700;
+      font-size: 1.15rem;
+    }
+    .brand img { width: 34px; height: 34px; border-radius: 8px; }
+    .nav-links { display: flex; align-items: center; gap: 1.2rem; }
+    .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 0.9rem; }
+    .nav-links a:hover { color: var(--accent-lime); }
+    .lang-switch {
+      display: inline-flex;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      padding: 3px;
+    }
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      padding: 0.28rem 0.7rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .lang-btn.active {
+      background: var(--gradient-brand);
+      color: #041022;
+    }
+    main {
+      max-width: 900px;
+      margin: 2.5rem auto 4rem;
+      padding: 0 1.5rem;
+    }
+    .support-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 22px;
+      padding: 2.5rem;
+      margin-bottom: 1.5rem;
+    }
+    h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    h2 { font-size: 1.25rem; color: var(--accent-lime); margin: 1.5rem 0 0.5rem; }
+    p { color: var(--text-secondary); font-size: 0.96rem; margin-bottom: 0.8rem; }
+    .btn {
+      display: inline-block;
+      margin-top: 0.5rem;
+      background: var(--gradient-brand);
+      color: #041022;
+      font-weight: 700;
+      padding: 0.75rem 1.35rem;
+      border-radius: 12px;
+      text-decoration: none;
+    }
+    a { color: var(--accent-lime); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="nav-container">
+      <a href="./" class="brand">
+        <img src="assets/icon.png" alt="PumpIT Icon" />
+        <span>PumpIT</span>
+      </a>
+      <div class="nav-links">
+        <a href="./">
+          <span lang="en">&larr; Overview</span>
+          <span lang="de">&larr; Übersicht</span>
+        </a>
+        <a href="privacy.html">
+          <span lang="en">Privacy</span>
+          <span lang="de">Datenschutz</span>
+        </a>
+        <div class="lang-switch">
+          <button type="button" class="lang-btn active" id="btn-en" onclick="setLanguage('en')">EN</button>
+          <button type="button" class="lang-btn" id="btn-de" onclick="setLanguage('de')">DE</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- English Support -->
+    <div class="support-card" lang="en">
+      <h1>PumpIT Support &amp; FAQ</h1>
+      <p>Need help with PumpIT, found a bug, or have a feature request? We are happy to assist you.</p>
+      <a class="btn" href="https://github.com/TotallyRaiva/PumpIT/issues" target="_blank" rel="noopener">Open Support Ticket on GitHub</a>
+
+      <h2>Frequently Asked Questions</h2>
+
+      <h2>Where do the fuel prices come from?</h2>
+      <p>
+        All fuel prices (Super E5, Super E10, Diesel) are provided in real time via the official <a href="https://creativecommons.tankerkoenig.de" target="_blank" rel="noopener">Tankerkönig API</a> (CC BY 4.0), which receives official market transparency data from Germany's <em>Markttransparenzstelle für Kraftstoffe (MTS-K)</em>.
+      </p>
+
+      <h2>Why does PumpIT only show stations in Germany?</h2>
+      <p>
+        The MTS-K fuel price feed covers petrol stations registered in Germany. You can search any German city or region using the search bar at the top of the map, even if you are currently located outside Germany.
+      </p>
+
+      <h2>How do I configure my own Tankerkönig API key?</h2>
+      <p>
+        Open <strong>Settings (⚙️)</strong> inside PumpIT and paste your personal key under <em>Tankerkönig API Key</em>. You can register for a free API key at <a href="https://creativecommons.tankerkoenig.de" target="_blank" rel="noopener">creativecommons.tankerkoenig.de</a>.
+      </p>
+    </div>
+
+    <!-- German Support -->
+    <div class="support-card" lang="de">
+      <h1>PumpIT Support &amp; Häufige Fragen</h1>
+      <p>Benötigen Sie Hilfe zu PumpIT, haben Sie einen Fehler gefunden oder einen Funktionswunsch? Wir helfen Ihnen gerne weiter.</p>
+      <a class="btn" href="https://github.com/TotallyRaiva/PumpIT/issues" target="_blank" rel="noopener">Support-Anfrage auf GitHub erstellen</a>
+
+      <h2>Häufig gestellte Fragen (FAQ)</h2>
+
+      <h2>Woher stammen die Spritpreise?</h2>
+      <p>
+        Alle Kraftstoffpreise (Super E5, Super E10, Diesel) werden in Echtzeit über die <a href="https://creativecommons.tankerkoenig.de" target="_blank" rel="noopener">Tankerkönig-API</a> (CC BY 4.0) bezogen, die die offiziellen Daten der <em>Markttransparenzstelle für Kraftstoffe (MTS-K)</em> beim Bundeskartellamt bereitstellt.
+      </p>
+
+      <h2>Warum werden nur Tankstellen in Deutschland angezeigt?</h2>
+      <p>
+        Das MTS-K-Meldesystem umfasst Tankstellen innerhalb Deutschlands. Über die Suchleiste am oberen Bildschirmrand können Sie jederzeit beliebige deutsche Städte oder Regionen durchsuchen.
+      </p>
+
+      <h2>Wie kann ich einen eigenen Tankerkönig-API-Schlüssel hinterlegen?</h2>
+      <p>
+        Öffnen Sie in der App die <strong>Einstellungen (⚙️)</strong> und tragen Sie Ihren Schlüssel im Feld <em>Tankerkönig API Key</em> ein. Einen kostenlosen Schlüssel erhalten Sie unter <a href="https://creativecommons.tankerkoenig.de" target="_blank" rel="noopener">creativecommons.tankerkoenig.de</a>.
+      </p>
+    </div>
+  </main>
+
+  <script>
+    function setLanguage(lang) {
+      const validLang = (lang === 'de') ? 'de' : 'en';
+      document.documentElement.setAttribute('lang', validLang);
+      document.documentElement.setAttribute('data-lang', validLang);
+      document.getElementById('btn-en').classList.toggle('active', validLang === 'en');
+      document.getElementById('btn-de').classList.toggle('active', validLang === 'de');
+      try { localStorage.setItem('pumpit_lang', validLang); } catch (e) {}
+    }
+    (function initLanguage() {
+      const params = new URLSearchParams(window.location.search);
+      const queryLang = params.get('lang');
+      let savedLang = null;
+      try { savedLang = localStorage.getItem('pumpit_lang'); } catch (e) {}
+      const browserLang = (navigator.language || '').toLowerCase().startsWith('de') ? 'de' : 'en';
+      setLanguage(queryLang || savedLang || browserLang);
+    })();
+  </script>
+</body>
+</html>

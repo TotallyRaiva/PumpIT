@@ -136,6 +136,26 @@ public struct SettingsView: View {
                         }
                     }
 
+                    Link(destination: URL(string: "https://totallyraiva.github.io/PumpIT/privacy.html")!) {
+                        HStack {
+                            Text("Privacy Policy / Datenschutz")
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Link(destination: URL(string: "https://totallyraiva.github.io/PumpIT/support.html")!) {
+                        HStack {
+                            Text("Support & FAQ")
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
                     VStack(alignment: .leading, spacing: 6) {
                         Text("License: Creative Commons CC BY 4.0")
                             .font(.caption.weight(.semibold))
