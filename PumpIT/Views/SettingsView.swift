@@ -8,6 +8,7 @@ import SwiftUI
 public struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
 
+    @AppStorage(AppLanguage.storageKey) private var appLanguageRaw: String = AppLanguage.current.rawValue
     @AppStorage("default_fuel_type") private var defaultFuelType: String = FuelType.e5.rawValue
     @AppStorage("search_radius") private var searchRadius: Double = 5.0
     @AppStorage("sort_by_cheapest") private var sortByCheapest: Bool = true
@@ -20,6 +21,10 @@ public struct SettingsView: View {
 
     public init(onAPIKeyChanged: (() -> Void)? = nil) {
         self.onAPIKeyChanged = onAPIKeyChanged
+    }
+
+    private var lang: AppLanguage {
+        AppLanguage(rawValue: appLanguageRaw) ?? .english
     }
 
     public var body: some View {
@@ -44,7 +49,7 @@ public struct SettingsView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("PumpIT")
                                 .font(.title3.weight(.bold))
-                            Text("Smart Fuel Tracker Germany")
+                            Text(L10n.tr("Smart Fuel Tracker Germany", "Smarter Spritpreis-Tracker Deutschland", lang: lang))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             Text("Version 1.0.0 (Build 1)")
@@ -55,9 +60,15 @@ public struct SettingsView: View {
                     .padding(.vertical, 4)
                 }
 
-                // MARK: - Fuel & Search Preferences
-                Section(header: Text("Search Preferences")) {
-                    Picker("Default Fuel Type", selection: $defaultFuelType) {
+                // MARK: - Language & Search Preferences
+                Section(header: Text(L10n.tr("Search Preferences", "Sucheinstellungen", lang: lang))) {
+                    Picker(L10n.tr("Language", "Sprache", lang: lang), selection: $appLanguageRaw) {
+                        ForEach(AppLanguage.allCases) { language in
+                            Text(language.displayName).tag(language.rawValue)
+                        }
+                    }
+
+                    Picker(L10n.tr("Default Fuel Type", "Standard-Kraftstoff", lang: lang), selection: $defaultFuelType) {
                         ForEach(FuelType.allCases) { fuel in
                             Text(fuel.displayName).tag(fuel.rawValue)
                         }
@@ -65,7 +76,7 @@ public struct SettingsView: View {
 
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            Text("Search Radius")
+                            Text(L10n.tr("Search Radius", "Suchradius", lang: lang))
                             Spacer()
                             Text(String(format: "%.0f km", draftRadius))
                                 .font(.subheadline.weight(.semibold))
@@ -80,30 +91,42 @@ public struct SettingsView: View {
                         .tint(.teal)
                     }
 
-                    Toggle("Sort Results by Lowest Price", isOn: $sortByCheapest)
+                    Toggle(
+                        L10n.tr("Sort Results by Lowest Price", "Nach günstigstem Preis sortieren", lang: lang),
+                        isOn: $sortByCheapest
+                    )
                 }
 
                 // MARK: - Tankerkönig API Key
                 Section(
-                    header: Text("Tankerkönig API Key"),
-                    footer: Text("Leave empty to use the built-in secured key. You can register for your own free API key at creativecommons.tankerkoenig.de.")
+                    header: Text(L10n.tr("Tankerkönig API Key", "Tankerkönig API-Schlüssel", lang: lang)),
+                    footer: Text(
+                        L10n.tr(
+                            "Leave empty to use the built-in secured key. You can register for your own free API key at creativecommons.tankerkoenig.de.",
+                            "Leer lassen, um den integrierten Schlüssel zu verwenden. Einen eigenen kostenlosen API-Schlüssel erhalten Sie unter creativecommons.tankerkoenig.de.",
+                            lang: lang
+                        )
+                    )
                 ) {
-                    SecureField("Custom API Key (Optional)", text: $customAPIKey)
-                        .autocorrectionDisabled(true)
-                        .textInputAutocapitalization(.never)
-                        .onChange(of: customAPIKey) { _, newValue in
-                            AppConfiguration.customAPIKey = newValue
-                        }
+                    SecureField(
+                        L10n.tr("Custom API Key (Optional)", "Eigener API-Schlüssel (Optional)", lang: lang),
+                        text: $customAPIKey
+                    )
+                    .autocorrectionDisabled(true)
+                    .textInputAutocapitalization(.never)
+                    .onChange(of: customAPIKey) { _, newValue in
+                        AppConfiguration.customAPIKey = newValue
+                    }
 
                     HStack {
                         Image(systemName: "checkmark.shield.fill")
                             .foregroundStyle(.green)
-                        Text("Active & Secured in Keychain")
+                        Text(L10n.tr("Active & Secured in Keychain", "Aktiv & sicher im Schlüsselbund", lang: lang))
                             .font(.caption.weight(.medium))
                             .foregroundStyle(.secondary)
                         Spacer()
                         if !customAPIKey.isEmpty {
-                            Button("Clear") {
+                            Button(L10n.tr("Clear", "Löschen", lang: lang)) {
                                 customAPIKey = ""
                                 AppConfiguration.customAPIKey = ""
                                 HapticFeedback.impact(style: .light)
@@ -115,10 +138,10 @@ public struct SettingsView: View {
                 }
 
                 // MARK: - Legal & Attribution (Required by CC BY 4.0 & Apple Review)
-                Section(header: Text("Data & Licensing")) {
+                Section(header: Text(L10n.tr("Data & Licensing", "Daten & Lizenz", lang: lang))) {
                     Link(destination: URL(string: "https://creativecommons.tankerkoenig.de")!) {
                         HStack {
-                            Text("Data Provider: Tankerkönig")
+                            Text(L10n.tr("Data Provider: Tankerkönig", "Datenanbieter: Tankerkönig", lang: lang))
                             Spacer()
                             Image(systemName: "arrow.up.right")
                                 .font(.caption)
@@ -128,7 +151,7 @@ public struct SettingsView: View {
 
                     Link(destination: URL(string: "https://www.bundeskartellamt.de/DE/Wirtschaftsbereiche/Mineraloel/MTS-Kraftstoffe/mtskraftstoffe_node.html")!) {
                         HStack {
-                            Text("Official Source: MTS-K Bundeskartellamt")
+                            Text(L10n.tr("Official Source: MTS-K Bundeskartellamt", "Offizielle Quelle: MTS-K Bundeskartellamt", lang: lang))
                             Spacer()
                             Image(systemName: "arrow.up.right")
                                 .font(.caption)
@@ -136,9 +159,9 @@ public struct SettingsView: View {
                         }
                     }
 
-                    Link(destination: URL(string: "https://totallyraiva.github.io/PumpIT/privacy.html")!) {
+                    Link(destination: URL(string: "https://totallyraiva.github.io/PumpIT/privacy.html?lang=\(lang.rawValue)")!) {
                         HStack {
-                            Text("Privacy Policy / Datenschutz")
+                            Text(L10n.tr("Privacy Policy", "Datenschutzerklärung", lang: lang))
                             Spacer()
                             Image(systemName: "arrow.up.right")
                                 .font(.caption)
@@ -146,9 +169,9 @@ public struct SettingsView: View {
                         }
                     }
 
-                    Link(destination: URL(string: "https://totallyraiva.github.io/PumpIT/support.html")!) {
+                    Link(destination: URL(string: "https://totallyraiva.github.io/PumpIT/support.html?lang=\(lang.rawValue)")!) {
                         HStack {
-                            Text("Support & FAQ")
+                            Text(L10n.tr("Support & FAQ", "Support & Häufige Fragen", lang: lang))
                             Spacer()
                             Image(systemName: "arrow.up.right")
                                 .font(.caption)
@@ -157,20 +180,26 @@ public struct SettingsView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("License: Creative Commons CC BY 4.0")
+                        Text(L10n.tr("License: Creative Commons CC BY 4.0", "Lizenz: Creative Commons CC BY 4.0", lang: lang))
                             .font(.caption.weight(.semibold))
-                        Text("All price data is retrieved from official Markttransparenzstelle für Kraftstoffe (MTS-K) feeds. Real-time prices are provided without warranty or guarantee.")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+                        Text(
+                            L10n.tr(
+                                "All price data is retrieved from official Markttransparenzstelle für Kraftstoffe (MTS-K) feeds. Real-time prices are provided without warranty or guarantee.",
+                                "Alle Preisdaten stammen von der offiziellen Markttransparenzstelle für Kraftstoffe (MTS-K). Echtzeitpreise werden ohne Gewähr bereitgestellt.",
+                                lang: lang
+                            )
+                        )
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                     }
                     .padding(.vertical, 4)
                 }
             }
-            .navigationTitle("Settings & About")
+            .navigationTitle(L10n.tr("Settings & About", "Einstellungen & Info", lang: lang))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
+                    Button(L10n.tr("Done", "Fertig", lang: lang)) {
                         HapticFeedback.impact(style: .light)
                         dismiss()
                     }
@@ -192,5 +221,6 @@ public struct SettingsView: View {
                 }
             }
         }
+        .environment(\.locale, lang.locale)
     }
 }

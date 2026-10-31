@@ -150,4 +150,11 @@ final class PumpITTests: XCTestCase {
         let allLogsAfterSecondSave = try context.fetch(FetchDescriptor<PriceLog>())
         XCTAssertEqual(allLogsAfterSecondSave.count, 3)
     }
+
+    func testAppLanguageLocalization() {
+        XCTAssertEqual(L10n.tr("Gas Station", "Tankstelle", lang: .english), "Gas Station")
+        XCTAssertEqual(L10n.tr("Gas Station", "Tankstelle", lang: .german), "Tankstelle")
+        XCTAssertEqual(AppLanguage.english.displayName, "English")
+        XCTAssertEqual(AppLanguage.german.displayName, "Deutsch")
+    }
 }

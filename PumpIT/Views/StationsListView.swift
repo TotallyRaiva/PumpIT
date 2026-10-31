@@ -10,7 +10,12 @@ public struct StationsListView: View {
     public let fuelType: FuelType
     public let onSelectStation: (GasStation) -> Void
 
+    @AppStorage(AppLanguage.storageKey) private var appLanguageRaw: String = AppLanguage.current.rawValue
     @AppStorage("sort_by_cheapest") private var sortByCheapest: Bool = true
+
+    private var lang: AppLanguage {
+        AppLanguage(rawValue: appLanguageRaw) ?? .english
+    }
 
     public init(
         stations: [GasStation],
@@ -59,12 +64,18 @@ public struct StationsListView: View {
                 Image(systemName: "fuelpump.slash")
                     .font(.system(size: 44))
                     .foregroundStyle(.secondary)
-                Text("No Gas Stations Found")
+                Text(L10n.tr("No Gas Stations Found", "Keine Tankstellen gefunden", lang: lang))
                     .font(.headline)
-                Text("Try expanding your search radius or searching for another city.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
+                Text(
+                    L10n.tr(
+                        "Try expanding your search radius or searching for another city.",
+                        "Versuchen Sie, den Suchradius zu vergrößern oder nach einer anderen Stadt zu suchen.",
+                        lang: lang
+                    )
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
             }
             .padding()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -94,7 +105,7 @@ public struct StationsListView: View {
                                     .lineLimit(1)
 
                                 if !station.isOpen {
-                                    Text("CLOSED")
+                                    Text(L10n.tr("CLOSED", "GESCHL.", lang: lang))
                                         .font(.system(size: 9, weight: .bold))
                                         .padding(.horizontal, 5)
                                         .padding(.vertical, 2)
@@ -102,7 +113,7 @@ public struct StationsListView: View {
                                         .foregroundStyle(.red)
                                         .clipShape(Capsule())
                                 } else if let p = price(for: station), let low = lowestPrice, abs(p - low) < 0.001 {
-                                    Text("BEST")
+                                    Text(L10n.tr("BEST", "BESTPREIS", lang: lang))
                                         .font(.system(size: 9, weight: .bold))
                                         .padding(.horizontal, 5)
                                         .padding(.vertical, 2)
@@ -118,7 +129,7 @@ public struct StationsListView: View {
                                 .lineLimit(1)
 
                             if let dist = station.dist {
-                                Text(String(format: "%.1f km away", dist))
+                                Text(String(format: L10n.tr("%.1f km away", "%.1f km entfernt", lang: lang), dist))
                                     .font(.caption2.weight(.medium))
                                     .foregroundStyle(.tertiary)
                             }
@@ -140,7 +151,7 @@ public struct StationsListView: View {
                                 Text("—")
                                     .font(.subheadline.weight(.bold))
                                     .foregroundStyle(.secondary)
-                                Text("No Price")
+                                Text(L10n.tr("No Price", "Kein Preis", lang: lang))
                                     .font(.system(size: 9))
                                     .foregroundStyle(.secondary)
                             }

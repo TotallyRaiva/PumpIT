@@ -15,15 +15,27 @@ public enum NetworkError: LocalizedError, Sendable {
     public var errorDescription: String? {
         switch self {
         case .invalidURL:
-            return "The request URL is invalid."
+            return L10n.tr("The request URL is invalid.", "Die Anfrage-URL ist ungültig.")
         case .invalidResponse(let statusCode):
-            return "Server returned an unexpected HTTP status code: \(statusCode)."
+            return L10n.tr(
+                "Server returned an unexpected HTTP status code: \(statusCode).",
+                "Der Server hat einen unerwarteten HTTP-Statuscode zurückgegeben: \(statusCode)."
+            )
         case .apiError(let message):
-            return "Tankerkönig API error: \(message)"
+            return L10n.tr(
+                "Tankerkönig API error: \(message)",
+                "Tankerkönig API-Fehler: \(message)"
+            )
         case .decodingError(let message):
-            return "Failed to decode response: \(message)"
+            return L10n.tr(
+                "Failed to decode response: \(message)",
+                "Antwort konnte nicht verarbeitet werden: \(message)"
+            )
         case .unknown(let message):
-            return "Network error: \(message)"
+            return L10n.tr(
+                "Network error: \(message)",
+                "Netzwerkfehler: \(message)"
+            )
         }
     }
 }

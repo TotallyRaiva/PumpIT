@@ -10,6 +10,12 @@ public struct GasStationMarkerView: View {
     public let fuelType: FuelType
     public let isSelected: Bool
 
+    @AppStorage(AppLanguage.storageKey) private var appLanguageRaw: String = AppLanguage.current.rawValue
+
+    private var lang: AppLanguage {
+        AppLanguage(rawValue: appLanguageRaw) ?? .english
+    }
+
     private var displayPrice: String {
         let price: Double?
         switch fuelType {
@@ -19,7 +25,7 @@ public struct GasStationMarkerView: View {
         }
 
         guard station.isOpen else {
-            return "Closed"
+            return L10n.tr("Closed", "Geschl.", lang: lang)
         }
 
         guard let price = price, price > 0 else {

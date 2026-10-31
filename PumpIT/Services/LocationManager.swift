@@ -51,7 +51,10 @@ public final class LocationManager: NSObject, CLLocationManagerDelegate, @unchec
         case .authorizedWhenInUse, .authorizedAlways:
             clManager.requestLocation()
         case .denied, .restricted:
-            locationError = "Location access was denied. Using Oettingen as default."
+            locationError = L10n.tr(
+                "Location access was denied. Using Oettingen as default.",
+                "Standortzugriff verweigert. Oettingen wird als Standard verwendet."
+            )
         @unknown default:
             break
         }
@@ -76,7 +79,10 @@ public final class LocationManager: NSObject, CLLocationManagerDelegate, @unchec
             clManager.requestLocation()
         case .denied, .restricted:
             pendingLocationRequest = false
-            locationError = "Location access was denied. Using Oettingen as default."
+            locationError = L10n.tr(
+                "Location access was denied. Using Oettingen as default.",
+                "Standortzugriff verweigert. Oettingen wird als Standard verwendet."
+            )
         default:
             break
         }

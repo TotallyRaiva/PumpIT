@@ -16,11 +16,17 @@ public struct LowestPriceRecord: Sendable {
     }
 
     public var formattedTime: String {
-        timestamp.formatted(date: .omitted, time: .shortened)
+        timestamp.formatted(
+            Date.FormatStyle(date: .omitted, time: .shortened)
+                .locale(AppLanguage.current.locale)
+        )
     }
 
     public var formattedDateTime: String {
-        timestamp.formatted(.dateTime.weekday(.abbreviated).hour().minute())
+        timestamp.formatted(
+            Date.FormatStyle.dateTime.weekday(.abbreviated).hour().minute()
+                .locale(AppLanguage.current.locale)
+        )
     }
 }
 
@@ -116,11 +122,20 @@ public enum PriceHistoryTracker {
         let hour = Calendar.current.component(.hour, from: Date())
         let tip: String
         if hour >= 18 && hour <= 22 {
-            tip = "Prime fueling window active! Evening prices in Germany are historically at their lowest."
+            tip = L10n.tr(
+                "Prime fueling window active! Evening prices in Germany are historically at their lowest.",
+                "Ideales Tankfenster aktiv! Abends sind die Spritpreise in Deutschland erfahrungsgemäß am niedrigsten."
+            )
         } else if hour >= 6 && hour <= 9 {
-            tip = "Morning price surge: German stations peak during morning commute. Waiting until evening can save 8-12 ct/L."
+            tip = L10n.tr(
+                "Morning price surge: German stations peak during morning commute. Waiting until evening can save 8-12 ct/L.",
+                "Morgendliches Preishoch: Im Berufsverkehr sind Tankstellen am teuersten. Abends sparen Sie oft 8–12 ct/L."
+            )
         } else {
-            tip = "Prices fluctuate throughout the day. In Germany, fuel tends to steadily drop toward 8:00 PM."
+            tip = L10n.tr(
+                "Prices fluctuate throughout the day. In Germany, fuel tends to steadily drop toward 8:00 PM.",
+                "Die Preise schwanken im Tagesverlauf. In Deutschland sinken die Preise meist bis ca. 20:00 Uhr."
+            )
         }
 
         return PriceTrendAnalysis(

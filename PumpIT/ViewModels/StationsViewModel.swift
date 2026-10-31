@@ -124,7 +124,10 @@ public final class StationsViewModel {
         do {
             let response = try await search.start()
             guard let item = response.mapItems.first else {
-                errorMessage = "No matching location found for '\(trimmed)' in Germany."
+                errorMessage = L10n.tr(
+                    "No matching location found for '\(trimmed)' in Germany.",
+                    "Kein passender Ort für '\(trimmed)' in Deutschland gefunden."
+                )
                 isSearchingCity = false
                 return
             }
@@ -142,7 +145,10 @@ public final class StationsViewModel {
 
             await fetchStations(around: coordinate, context: context)
         } catch {
-            errorMessage = "Search failed: \(error.localizedDescription)"
+            errorMessage = L10n.tr(
+                "Search failed: \(error.localizedDescription)",
+                "Suche fehlgeschlagen: \(error.localizedDescription)"
+            )
         }
 
         isSearchingCity = false

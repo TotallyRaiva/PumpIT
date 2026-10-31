@@ -10,9 +10,15 @@ public struct StationDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
 
+    @AppStorage(AppLanguage.storageKey) private var appLanguageRaw: String = AppLanguage.current.rawValue
+
     public let station: GasStation
     @State private var selectedTrendFuel: FuelType
     @State private var trendAnalysis: PriceTrendAnalysis?
+
+    private var lang: AppLanguage {
+        AppLanguage(rawValue: appLanguageRaw) ?? .english
+    }
 
     public init(station: GasStation, initialFuelType: FuelType = .e5) {
         self.station = station
@@ -37,7 +43,7 @@ public struct StationDetailView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Gas Station")
+            .navigationTitle(L10n.tr("Gas Station", "Tankstelle", lang: lang))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -50,7 +56,7 @@ public struct StationDetailView: View {
                     }
                 }
             }
-            .task(id: selectedTrendFuel) {
+            .task(id: "\(selectedTrendFuel.rawValue)-\(appLanguageRaw)") {
                 trendAnalysis = PriceHistoryTracker.analyzeTrend(
                     station: station,
                     fuelType: selectedTrendFuel,
@@ -58,6 +64,7 @@ public struct StationDetailView: View {
                 )
             }
         }
+        .environment(\.locale, lang.locale)
     }
 
     // MARK: - Header Section
@@ -83,17 +90,21 @@ public struct StationDetailView: View {
                 Spacer()
 
                 // Status Badge
-                Text(station.isOpen ? "Open" : "Closed")
-                    .font(.caption.weight(.semibold))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(station.isOpen ? Color.green.opacity(0.15) : Color.red.opacity(0.15))
-                    .foregroundStyle(station.isOpen ? Color.green : Color.red)
-                    .clipShape(Capsule())
+                Text(
+                    station.isOpen
+                        ? L10n.tr("Open", "Geöffnet", lang: lang)
+                        : L10n.tr("Closed", "Geschlossen", lang: lang)
+                )
+                .font(.caption.weight(.semibold))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(station.isOpen ? Color.green.opacity(0.15) : Color.red.opacity(0.15))
+                .foregroundStyle(station.isOpen ? Color.green : Color.red)
+                .clipShape(Capsule())
             }
 
             if let dist = station.dist {
-                Label(String(format: "%.1f km away", dist), systemImage: "location")
+                Label(String(format: L10n.tr("%.1f km away", "%.1f km entfernt", lang: lang), dist), systemImage: "location")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -106,13 +117,13 @@ public struct StationDetailView: View {
     // MARK: - Prices Section
     private var pricesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Current Fuel Prices")
+            Text(L10n.tr("Current Fuel Prices", "Aktuelle Kraftstoffpreise", lang: lang))
                 .font(.headline)
 
             HStack(spacing: 12) {
-                PriceCardView(title: "Super E5", price: station.priceE5, color: .green)
-                PriceCardView(title: "Super E10", price: station.priceE10, color: .teal)
-                PriceCardView(title: "Diesel", price: station.priceDiesel, color: .orange)
+                PriceCardView(title: "Super E5", price: station.priceE5, color: .green, lang: lang)
+                PriceCardView(title: "Super E10", price: station.priceE10, color: .teal, lang: lang)
+                PriceCardView(title: "Diesel", price: station.priceDiesel, color: .orange, lang: lang)
             }
         }
     }
@@ -120,10 +131,13 @@ public struct StationDetailView: View {
     // MARK: - Best Time to Fuel (24h Trend) Section
     private var bestTimeToFuelSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Best Time & 24h Trend", systemImage: "clock.badge.checkmark")
-                .font(.headline)
+            Label(
+                L10n.tr("Best Time & 24h Trend", "Beste Tankzeit & 24h-Trend", lang: lang),
+                systemImage: "clock.badge.checkmark"
+            )
+            .font(.headline)
 
-            Picker("Fuel Type", selection: $selectedTrendFuel) {
+            Picker(L10n.tr("Fuel Type", "Kraftstoff", lang: lang), selection: $selectedTrendFuel) {
                 ForEach(FuelType.allCases) { fuel in
                     Text(fuel.shortName).tag(fuel)
                 }
@@ -134,7 +148,7 @@ public struct StationDetailView: View {
                 if let analysis = trendAnalysis, let record = analysis.lowestRecord {
                     HStack(alignment: .center) {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("24h Lowest Price")
+                            Text(L10n.tr("24h Lowest Price", "24h-Tiefstpreis", lang: lang))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             Text(record.formattedPrice)
@@ -145,7 +159,7 @@ public struct StationDetailView: View {
                         Spacer()
 
                         VStack(alignment: .trailing, spacing: 2) {
-                            Text("Recorded at")
+                            Text(L10n.tr("Recorded at", "Gemessen um", lang: lang))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             Text(record.formattedTime)
@@ -160,26 +174,47 @@ public struct StationDetailView: View {
                         HStack(spacing: 6) {
                             Image(systemName: "checkmark.seal.fill")
                                 .foregroundStyle(.green)
-                            Text("Optimal: Currently fueling at the 24h lowest price!")
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.green)
+                            Text(
+                                L10n.tr(
+                                    "Optimal: Currently fueling at the 24h lowest price!",
+                                    "Optimal: Aktuell tanken Sie zum 24h-Tiefstpreis!",
+                                    lang: lang
+                                )
+                            )
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.green)
                         }
                     } else if let diff = analysis.priceDifference {
                         HStack(spacing: 6) {
                             Image(systemName: "arrow.up.circle.fill")
                                 .foregroundStyle(.orange)
-                            Text(String(format: "Currently +%.3f € above 24h low", diff))
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(.orange)
+                            Text(
+                                String(
+                                    format: L10n.tr(
+                                        "Currently +%.3f € above 24h low",
+                                        "Aktuell +%.3f € über dem 24h-Tief",
+                                        lang: lang
+                                    ),
+                                    diff
+                                )
+                            )
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.orange)
                         }
                     }
                 } else {
                     HStack(spacing: 8) {
                         Image(systemName: "info.circle")
                             .foregroundStyle(.blue)
-                        Text("Price history builds automatically as you browse.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        Text(
+                            L10n.tr(
+                                "Price history builds automatically as you browse.",
+                                "Der Preisverlauf wird beim Stöbern automatisch aufgebaut.",
+                                lang: lang
+                            )
+                        )
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                     }
                 }
 
@@ -206,7 +241,7 @@ public struct StationDetailView: View {
     // MARK: - Routing Section
     private var routingSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Start Navigation")
+            Text(L10n.tr("Start Navigation", "Navigation starten", lang: lang))
                 .font(.headline)
 
             VStack(spacing: 10) {
@@ -218,7 +253,7 @@ public struct StationDetailView: View {
                     HStack {
                         Image(systemName: "apple.logo")
                             .font(.headline)
-                        Text("Open in Apple Maps")
+                        Text(L10n.tr("Open in Apple Maps", "In Apple Karten öffnen", lang: lang))
                             .font(.subheadline.weight(.semibold))
                         Spacer()
                         Image(systemName: "arrow.up.right")
@@ -239,7 +274,7 @@ public struct StationDetailView: View {
                     HStack {
                         Image(systemName: "map.fill")
                             .font(.headline)
-                        Text("Open in Google Maps")
+                        Text(L10n.tr("Open in Google Maps", "In Google Maps öffnen", lang: lang))
                             .font(.subheadline.weight(.semibold))
                         Spacer()
                         Image(systemName: "arrow.up.right")
@@ -260,7 +295,7 @@ public struct StationDetailView: View {
                     HStack {
                         Image(systemName: "car.fill")
                             .font(.headline)
-                        Text("Open in Waze")
+                        Text(L10n.tr("Open in Waze", "In Waze öffnen", lang: lang))
                             .font(.subheadline.weight(.semibold))
                         Spacer()
                         Image(systemName: "arrow.up.right")
@@ -282,6 +317,7 @@ private struct PriceCardView: View {
     let title: String
     let price: Double?
     let color: Color
+    let lang: AppLanguage
 
     var body: some View {
         VStack(spacing: 6) {
@@ -302,7 +338,7 @@ private struct PriceCardView: View {
                     .font(.title3.weight(.bold))
                     .foregroundStyle(.secondary)
 
-                Text("No Price")
+                Text(L10n.tr("No Price", "Kein Preis", lang: lang))
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
             }

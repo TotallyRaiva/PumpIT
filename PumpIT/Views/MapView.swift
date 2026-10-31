@@ -12,12 +12,17 @@ public struct MapView: View {
     @State private var viewModel = StationsViewModel()
     private let locationManager = LocationManager.shared
 
+    @AppStorage(AppLanguage.storageKey) private var appLanguageRaw: String = AppLanguage.current.rawValue
     @AppStorage("default_fuel_type") private var defaultFuelType: String = FuelType.e5.rawValue
     @AppStorage("search_radius") private var savedRadius: Double = 5.0
 
     @State private var isShowingListView: Bool = false
     @State private var isShowingSettings: Bool = false
     @State private var refreshTask: Task<Void, Never>?
+
+    private var lang: AppLanguage {
+        AppLanguage(rawValue: appLanguageRaw) ?? .english
+    }
 
     public init() {}
 
@@ -67,7 +72,7 @@ public struct MapView: View {
                 topControlsHeader
 
                 if viewModel.isLoading {
-                    ProgressView("Loading fuel prices...")
+                    ProgressView(L10n.tr("Loading fuel prices...", "Lade Kraftstoffpreise...", lang: lang))
                         .font(.caption)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 8)
@@ -139,16 +144,19 @@ public struct MapView: View {
                 .foregroundStyle(.secondary)
                 .font(.subheadline)
 
-            TextField("Search city or region in Germany...", text: $viewModel.searchQuery)
-                .textInputAutocapitalization(.words)
-                .autocorrectionDisabled(true)
-                .submitLabel(.search)
-                .onSubmit {
-                    HapticFeedback.impact(style: .medium)
-                    Task {
-                        await viewModel.searchCity(query: viewModel.searchQuery, context: modelContext)
-                    }
+            TextField(
+                L10n.tr("Search city or region in Germany...", "Stadt oder Region in Deutschland suchen...", lang: lang),
+                text: $viewModel.searchQuery
+            )
+            .textInputAutocapitalization(.words)
+            .autocorrectionDisabled(true)
+            .submitLabel(.search)
+            .onSubmit {
+                HapticFeedback.impact(style: .medium)
+                Task {
+                    await viewModel.searchCity(query: viewModel.searchQuery, context: modelContext)
                 }
+            }
 
             if viewModel.isSearchingCity {
                 ProgressView()
@@ -170,7 +178,7 @@ public struct MapView: View {
                     await viewModel.searchCity(query: viewModel.searchQuery, context: modelContext)
                 }
             } label: {
-                Text("Search")
+                Text(L10n.tr("Search", "Suchen", lang: lang))
                     .font(.caption.weight(.bold))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
